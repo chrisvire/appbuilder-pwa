@@ -364,6 +364,7 @@ The verse on image component.
                 style="position: relative; z-index: 1;"
             />
 
+            <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
             <p
                 id="verseOnImageTextDiv"
                 style="
@@ -577,9 +578,12 @@ The verse on image component.
                         }}
                     />
                 </div>
-                {#each config.backgroundImages as imgObj}
+                {#each config.backgroundImages as imgObj, index}
+                    <!-- svelte-ignore a11y-click-events-have-key-events -->
+                    <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
                     <img
                         src={base + '/backgrounds/' + imgObj.filename}
+                        alt="background {index}"
                         class="image_selector_pane_box"
                         on:click={(event) => {
                             voi_imgSrc = base + '/backgrounds/' + imgObj.filename;
