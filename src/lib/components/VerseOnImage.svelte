@@ -22,7 +22,8 @@ The verse on image component.
         currentFont,
         modal,
         MODAL_CROP,
-        s
+        s,
+        showVerseOnImageBorder
     } from '$lib/data/stores';
     import { shareImage } from '$lib/data/share';
     import { base } from '$app/paths';
@@ -387,8 +388,8 @@ The verse on image component.
                     overflow: hidden;
                     user-drag: none;
                     transform: translate({voi_textPosX}px, {voi_textPosY}px);
-                    border: 3px solid lightgreen;
                 "
+                style:border={$showVerseOnImageBorder ? "3px solid lightgreen": ""}
                 class="flex flex-col"
                 bind:this={voi_textBox}
                 on:mousedown={voiTextBox_handleMouseDown}

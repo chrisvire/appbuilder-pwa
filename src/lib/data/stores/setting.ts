@@ -349,6 +349,13 @@ export const userPreferenceSettings = ((): Array<App.UserPreferenceSetting> => {
             key: 'desktop-sidebar',
             defaultValue: false
         });
+        settings.push({
+            type: 'checkbox',
+            category: SETTINGS_CATEGORY_INTERFACE,
+            title: 'Verse On Image Border',
+            key: 'verse-on-image-border',
+            defaultValue: false
+        });
     }
     return settings;
 })();

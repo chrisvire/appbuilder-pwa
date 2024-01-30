@@ -95,3 +95,8 @@ export const showDesktopSidebar = derived(
     userSettings,
     ($userSettings) => $userSettings['desktop-sidebar']
 );
+
+export const showVerseOnImageBorder = derived(
+    userSettings,
+    ($userSettings) => $userSettings['verse-on-image-border']
+);
