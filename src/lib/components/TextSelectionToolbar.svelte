@@ -211,13 +211,11 @@ TODO:
                     </button>
                 {/if}
                 {#if isTextOnImageEnabled}
-                    <a
-                        href="{base}/image"
-                        class="dy-btn-sm dy-btn-ghost"
-                        style="text-decoration:none; display:flex; align-items:center;"
-                    >
+                    <button class="dy-btn-sm dy-btn-ghost">
+                    <a href="{base}/image">
                         <ImageIcon.Image color={barIconColor} />
                     </a>
+                    </button>
                 {/if}
                 {#if isHighlightEnabled}
                     <button
