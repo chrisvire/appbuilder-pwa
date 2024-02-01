@@ -1,3 +1,5 @@
+import { getMimeType } from '$lib/scripts/stringUtils';
+
 function createShareFile(text: string, filename: string) {
     return new File([text], filename, { type: 'text/plain' });
 }
@@ -24,6 +26,10 @@ export async function shareText(
             return;
         }
     } catch (error) {
+        if (error.name === 'AbortError') {
+            console.log('Sharing aborted');
+            return;
+        }
         console.error('Error sharing: ', error);
     }
 
@@ -39,16 +45,22 @@ export async function shareText(
     URL.revokeObjectURL(url);
 }
 
-export async function shareImage(title: string, text: string, filename: string, image: Blob) {
-    const file = new File([image], filename, { type: 'image/png' });
+export async function shareImage(filename: string, image: Blob) {
+    const type = getMimeType(filename);
+    console.log(`Sharing ${filename} as ${type}`);
+    const file = new File([image], filename, { type: type });
     try {
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-            const shareData: ShareData = { title, text, files: [file] };
+            const shareData: ShareData = { files: [file] };
 
             await navigator.share(shareData);
             return;
         }
     } catch (error) {
+        if (error.name === 'AbortError') {
+            console.log('Sharing aborted');
+            return;
+        }
         console.error('Error sharing: ', error);
     }
 

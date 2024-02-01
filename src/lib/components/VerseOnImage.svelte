@@ -28,7 +28,7 @@ The verse on image component.
     import { shareImage } from '$lib/data/share';
     import { base } from '$app/paths';
     import config from '$lib/data/config';
-    import { toPng } from 'html-to-image';
+    import { toJpeg } from 'html-to-image';
     import ImagesIcon from '$lib/icons/image/ImagesIcon.svelte';
     import FontList from '$lib/components/FontList.svelte';
     import ColorPicker from 'svelte-awesome-color-picker';
@@ -94,14 +94,14 @@ The verse on image component.
     let voi_imageSaturation = 100;
     let voi_imageBlur = 0;
 
-    export let crop_sourceX,
-        crop_sourceY,
-        crop_sourceWidth,
-        crop_sourceHeight,
-        crop_destX,
-        crop_destY,
-        crop_destWidth,
-        crop_destHeight;
+    // export let crop_sourceX,
+    //     crop_sourceY,
+    //     crop_sourceWidth,
+    //     crop_sourceHeight,s
+    //     crop_destX,
+    //     crop_destY,
+    //     crop_destWidth,
+    //     crop_destHeight;
 
     function applyCrop(img) {
         /*DEBUG*/ console.log('ApplyCrop triggered.');
@@ -246,22 +246,30 @@ The verse on image component.
     }
 
     // Share button feature:
-    export function shareCanvas() {
+    export async function shareCanvas() {
         var node = document.getElementById('verseOnImgPreview');
-        toPng(node)
-            .then(function (dataUrl) {
-                fetch(dataUrl)
-                    .then((response) => response.blob())
-                    .then((blob) => {
-                        shareImage(reference, verses, reference + '.png', blob);
-                    })
-                    .catch((error) => {
-                        console.error('Error fetching data:', error);
-                    });
-            })
-            .catch(function (error) {
-                console.error('oops, something went wrong!', error);
-            });
+        try {
+            var dataUrl = await toJpeg(node);
+            var response = await fetch(dataUrl);
+            var blob = await response.blob();
+            await shareImage(reference + '.jpeg', blob);
+        } catch (error) {
+            console.error('oops, something went wrong!', error);
+        }
+    }
+
+    export async function downloadCanvas() {
+        var node = document.getElementById('verseOnImgPreview');
+        try {
+            var dataURl = await toJpeg(node);
+            var link = document.createElement('a');
+            link.download = reference + '.jpeg';
+            link.href = dataURl;
+            link.click();
+            link.remove();
+        } catch (error) {
+            console.error('oops, something went wrong!', error);
+        }
     }
 
     // EditorTabs centering feature:
@@ -342,7 +350,7 @@ The verse on image component.
 
 <div
     id="verseOnImageContainer"
-    class="flex flex-col flex-nowrap max-w-screen-sm mx-auto"
+    class="flex flex-col flex-nowrap max-w-screen-sm mx-auto relative"
     style="height: 100%; max-width: {voi_width}px;"
     style:direction={$direction}
 >
@@ -387,9 +395,10 @@ The verse on image component.
                     text-shadow: {voi_textShadow};
                     overflow: hidden;
                     user-drag: none;
-                    transform: translate({voi_textPosX}px, {voi_textPosY}px);
+                    left: {voi_textPosX}px;
+                    top: {voi_textPosY}px;
                 "
-                style:border={$showVerseOnImageBorder ? "3px solid lightgreen": ""}
+                style:border={$showVerseOnImageBorder ? '3px solid lightgreen' : ''}
                 class="flex flex-col"
                 bind:this={voi_textBox}
                 on:mousedown={voiTextBox_handleMouseDown}

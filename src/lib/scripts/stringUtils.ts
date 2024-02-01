@@ -60,3 +60,28 @@ export function padWithInitialZeros(input: string, length: number): string {
 
     return result;
 }
+
+export function getMimeType(filename: string) {
+    // Map file extensions to MIME types
+    const mimeTypes = {
+        html: 'text/html',
+        htm: 'text/html',
+        txt: 'text/plain',
+        css: 'text/css',
+        js: 'application/javascript',
+        json: 'application/json',
+        xml: 'application/xml',
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png',
+        gif: 'image/gif',
+        pdf: 'application/pdf'
+        // Add more MIME types as needed
+    };
+
+    // Get file extension
+    const extension = filename.split('.').pop().toLowerCase();
+
+    // Lookup MIME type
+    return mimeTypes[extension] || 'application/octet-stream'; // Default to binary data if MIME type is unknown
+}
