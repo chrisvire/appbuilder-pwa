@@ -28,7 +28,7 @@ The verse on image component.
     import { shareImage } from '$lib/data/share';
     import { base } from '$app/paths';
     import config from '$lib/data/config';
-    import { toJpeg } from 'html-to-image';
+    import { domToJpeg } from 'modern-screenshot';
     import ImagesIcon from '$lib/icons/image/ImagesIcon.svelte';
     import FontList from '$lib/components/FontList.svelte';
     import ColorPicker from 'svelte-awesome-color-picker';
@@ -145,18 +145,11 @@ The verse on image component.
         return ctx.fillStyle;
     }
 
-    $: render(
-        cnv_background,
-        voi_imageBrightness,
-        voi_imageContrast,
-        voi_imageSaturation,
-        voi_imageBlur
-    );
+    $: render(cnv_background);
 
-    function render(background, imgBrightness, imgContrast, imgSaturation, imgBlur) {
+    function render(background) {
         if (!cnv) return;
         const context = cnv.getContext('2d');
-        context.filter = `brightness(${imgBrightness}%) contrast(${imgContrast}%) saturate(${imgSaturation}%) blur(${imgBlur}px)`;
         context.drawImage(background, 0, 0, cnv.width, cnv.height);
     }
 
@@ -249,7 +242,7 @@ The verse on image component.
     export async function shareCanvas() {
         var node = document.getElementById('verseOnImgPreview');
         try {
-            var dataUrl = await toJpeg(node);
+            var dataUrl = await domToJpeg(node);
             var response = await fetch(dataUrl);
             var blob = await response.blob();
             await shareImage(reference + '.jpeg', blob);
@@ -261,7 +254,7 @@ The verse on image component.
     export async function downloadCanvas() {
         var node = document.getElementById('verseOnImgPreview');
         try {
-            var dataURl = await toJpeg(node);
+            var dataURl = await domToJpeg(node);
             var link = document.createElement('a');
             link.download = reference + '.jpeg';
             link.href = dataURl;
@@ -370,7 +363,7 @@ The verse on image component.
                 height={cnvFullScreen
                     ? viewportWidth_in_px + 'px'
                     : viewportHeight_in_px / 2 + 'px'}
-                style="position: relative; z-index: 1;"
+                style="position: relative; z-index: 1;filter:brightness({voi_imageBrightness}%) contrast({voi_imageContrast}%) saturate({voi_imageSaturation}%) blur({voi_imageBlur}px);"
             />
 
             <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
