@@ -1,187 +1,226 @@
-<svelte:options accessors={true} />
-
-<!--
-@component
-The navbar component. We have sliders that update reactively to both font size and line height.
-3 buttons to change the style from normal, sepia and dark.
--->
 <script>
-    import Modal from './Modal.svelte';
-    import { modal, MODAL_FONT, s, t } from '$lib/data/stores';
-    import { onMount } from 'svelte';
-    import config from '$lib/data/config';
+    import { onMount, createEventDispatcher } from 'svelte';
 
-    let modalId = 'imageCropper';
-    let modalThis;
-    export function showModal() {
-        modalThis.showModal();
-    }
+    export let imageUrl;
 
-    export let data = {
-        applyCrop: undefined,
-        cnv: undefined,
-        selectedSrc: undefined
+    const dispatch = createEventDispatcher();
+
+    let image;
+    let cropBox = {
+        x: 0,
+        y: 0,
+        size: 0,
+        width: 0,
+        height: 0
     };
-    $: applyCrop = data.applyCrop;
-    $: main_canvas = data.cnv;
-    $: src = data.selectedSrc;
 
-    $: showD8ta(data);
-
-    function showD8ta(d8ta) {
-        console.log('D8=', d8ta);
-    }
-
-    let temp_img;
-    let temp_canvas;
-    let ctx;
-
-    // export let sourceX;
-    // export let sourceY;
-    // export let sourceWidth;
-    // export let sourceHeight;
-    // export let destX;
-    // export let destY;
-    // export let destWidth;
-    // export let destHeight;
-
-    $: render(src);
-
-    function render(i_src) {
-        /*DEBUG*/ console.log('Crop render called.');
-        if (!temp_canvas) return;
-        /*DEBUG*/ console.log('Crop temp_canvas == true.');
-        temp_img = new Image();
-        temp_img.src = i_src;
-        // Make sure the image is loaded first otherwise nothing will draw.
-        temp_img.onload = function () {
-            ctx = temp_canvas.getContext('2d');
-
-            ctx.drawImage(temp_img, 0, 0, main_canvas.width, temp_img.height); //TODO: make width canvas.width and height auto
-            /*DEBUG*/ console.log('Crop ctx=', ctx);
-            /*DEBUG*/ console.log('Crop w&h=', main_canvas.width, main_canvas.height);
-            /*DEBUG*/ console.log('Crop img=', temp_img);
-        };
-    }
-
-    //Chat-GPT:
-
+    let lastTouchX, lastTouchY;
     let isDragging = false;
-    let dragStartX, dragStartY;
-    export let cropTop = 0;
-    export let cropLeft = 0;
-    export let cropWidth = 100; // Initial width of the square
-    export let cropHeight = 100; // Initial height of the square
+    let startX, startY;
+    let pinchStartDistance, initialCropSize;
 
-    function startDragging(event) {
+    const calculateCropBox = () => {
+        const imageSize = Math.min(image.width, image.height);
+        cropBox.size = Math.round(0.9 * imageSize);
+        cropBox.width = cropBox.size;
+        cropBox.height = cropBox.size;
+        cropBox.x = (image.width - cropBox.size) / 2;
+        cropBox.y = (image.height - cropBox.size) / 2;
+    };
+
+    onMount(() => {
+        image.onload = () => {
+            calculateCropBox();
+        };
+    });
+
+    // const handleMouseDown = (event) => {
+    //     isDragging = true;
+    //     startX = event.clientX - cropBox.x;
+    //     startY = event.clientY - cropBox.y;
+    // };
+
+    // const handleMouseMove = (event) => {
+    //     if (isDragging) {
+    //         cropBox.x = event.clientX - startX;
+    //         cropBox.y = event.clientY - startY;
+    //         keepOnScreen();
+    //     }
+    // };
+
+    // const handleMouseUp = () => {
+    //     isDragging = false;
+    // };
+
+    // const handleMouseLeave = () => {
+    //     isDragging = false;
+    // };
+
+    // const handleTouchStart = (event) => {
+    //     const touch = event.touches[0];
+    //     startX = touch.clientX - cropBox.x;
+    //     startY = touch.clientY - cropBox.y;
+    //     isDragging = true;
+    // };
+
+    // const handleTouchMove = (event) => {
+    //     if (isDragging) {
+    //         const touch = event.touches[0];
+    //         cropBox.x = touch.clientX - startX;
+    //         cropBox.y = touch.clientY - startY;
+    //         keepOnScreen();
+    //     }
+    // };
+
+    // const handleTouchEnd = () => {
+    //     isDragging = false;
+    // };
+
+    const handleMouseDown = (event) => {
+        event.preventDefault();
         isDragging = true;
-        const touch = event.touches[0];
-        dragStartX = touch.clientX;
-        dragStartY = touch.clientY;
-    }
+        startX = event.clientX - cropBox.x;
+        startY = event.clientY - cropBox.y;
+    };
 
-    function drag(event) {
-        if (isDragging) {
-            const touch = event.touches[0];
-            const deltaX = touch.clientX - dragStartX;
-            const deltaY = touch.clientY - dragStartY;
-
-            cropLeft += deltaX;
-            cropTop += deltaY;
-
-            dragStartX = touch.clientX;
-            dragStartY = touch.clientY;
-        }
-    }
-
-    function stopDragging() {
-        isDragging = false;
-    }
-
-    function pinch(event) {
-        if (event.touches.length >= 2) {
+    const handleTouchStart = (event) => {
+        if (event.touches.length === 1) {
+            lastTouchX = event.touches[0].clientX;
+            lastTouchY = event.touches[0].clientY;
+        } else if (event.touches.length === 2) {
             const touch1 = event.touches[0];
             const touch2 = event.touches[1];
-
-            const distance = Math.sqrt(
-                (touch2.clientX - touch1.clientX) ** 2 + (touch2.clientY - touch1.clientY) ** 2
+            pinchStartDistance = Math.sqrt(
+                Math.pow(touch2.clientX - touch1.clientX, 2) +
+                    Math.pow(touch2.clientY - touch1.clientY, 2)
             );
-
-            cropWidth = cropHeight = distance;
+            initialCropSize = cropBox.size;
         }
-    }
+    };
 
-    function cropImage() {
-        /*DBEUG*/ console.log('Crop triggered');
-        const ctx = temp_canvas.getContext('2d');
-        ctx.clearRect(0, 0, main_canvas.width, main_canvas.height);
-        ctx.drawImage(
-            temp_img,
-            cropLeft,
-            cropTop,
-            cropWidth,
-            cropHeight,
-            0,
-            0,
-            main_canvas.width,
-            main_canvas.height
-        );
-        const cropped_image = ctx.getImageData(0, 0, main_canvas.width, main_canvas.height);
-        /*DEBUG*/ console.log('Crop result = ', cropped_image);
-        createImageBitmap(cropped_image).then((croppedBitmap) => applyCrop(croppedBitmap));
-    }
+    const handleTouchMove = (event) => {
+        if (event.touches.length === 1 && !pinchStartDistance && !initialCropSize) {
+            const touchX = event.touches[0].clientX;
+            const touchY = event.touches[0].clientY;
+            cropBox.x += touchX - lastTouchX;
+            cropBox.y += touchY - lastTouchY;
+            keepOnScreen(); // Ensure the crop box stays within the image bounds
+            lastTouchX = touchX;
+            lastTouchY = touchY;
+        } else if (event.touches.length === 2 && pinchStartDistance && initialCropSize) {
+            const touch1 = event.touches[0];
+            const touch2 = event.touches[1];
+            const pinchCurrentDistance = Math.sqrt(
+                Math.pow(touch2.clientX - touch1.clientX, 2) +
+                    Math.pow(touch2.clientY - touch1.clientY, 2)
+            );
+            const pinchDelta = pinchCurrentDistance - pinchStartDistance;
+            const newSize = Math.max(50, initialCropSize + pinchDelta * 0.1); // Adjust sensitivity as needed
+            cropBox.size = newSize;
+            cropBox.width = newSize;
+            cropBox.height = newSize;
+            cropBox.x = cropBox.x + (initialCropSize - newSize) / 2;
+            cropBox.y = cropBox.y + (initialCropSize - newSize) / 2;
+            keepOnScreen();
+        }
+    };
+
+    const handleMouseUp = () => {
+        isDragging = false;
+    };
+
+    const handleMouseMove = (event) => {
+        if (isDragging) {
+            cropBox.x = event.clientX - startX;
+            cropBox.y = event.clientY - startY;
+            keepOnScreen();
+        }
+    };
+
+    const keepOnScreen = () => {
+        cropBox.x = Math.min(Math.max(cropBox.x, 0), image.width - cropBox.width);
+        cropBox.y = Math.min(Math.max(cropBox.y, 0), image.height - cropBox.height);
+    };
+
+    const handleMouseWheel = (event) => {
+        const delta = Math.max(-1, Math.min(1, event.deltaY));
+        cropBox.size += delta * 10; // Adjust the sensitivity as needed
+        cropBox.size = Math.max(50, Math.min(cropBox.size, Math.min(image.width, image.height)));
+        keepOnScreen();
+    };
+
+    const handleCrop = () => {
+        dispatch('crop', cropBox);
+    };
 </script>
 
-<!-- Image Cropper -->
-<Modal
-    bind:this={modalThis}
-    id={modalId}
-    useLabel={false}
-    addCSS="width: 100vw; padding: 0px;"
-    on:close={() => {
-        console.log('Crop modal closed.');
-    }}
-    ><!--addCSS is a prop for injecting CSS into the modal-->
-    <svelte:fragment slot="content">
+<!-- class="relative overflow-hidden"
+on:mousedown={handleMouseDown}
+on:mousemove={handleMouseMove}
+on:mouseup={handleMouseUp}
+on:mouseleave={handleMouseLeave}
+on:touchstart={handleTouchStart}
+on:touchmove={handleTouchMove}
+on:touchend={handleTouchEnd}
+on:touchcancel={handleTouchEnd}
+on:wheel={handleMouseWheel} -->
+<div
+    class="relative overflow-hidden"
+    style="touch-action: none;"
+    on:mousedown={handleMouseDown}
+    on:mouseup={handleMouseUp}
+    on:mousemove={handleMouseMove}
+    on:touchstart={handleTouchStart}
+    on:touchmove={handleTouchMove}
+>
+    {#if imageUrl}
+        <img
+            src={imageUrl}
+            alt="Image"
+            bind:this={image}
+            class="inset-0 object-cover opacity-100 transition-opacity duration-300"
+        />
+    {/if}
+
+    {#if image}
+        <!-- Top Scrim -->
         <div
-            id="crop_temp_canvas_container"
-            style="width: 100vw; height: 80vh; border: 5px soild green; background-color: yellow;"
-        >
-            <canvas
-                bind:this={temp_canvas}
-                width={main_canvas ? main_canvas.width : undefined}
-                height={main_canvas ? main_canvas.height : undefined}
-                style="background-color: grey;"
-            />
+            class="absolute inset-0"
+            style="background-color: rgba(0, 0, 0, 0.5); z-index: 1; top: 0; left: 0; width: 100%; height: {cropBox.y}px;"
+        ></div>
 
-            <div
-                class="crop-box"
-                style="
-                    position: absolute;
-                    top: {cropTop}px;
-                    left: {cropLeft}px;
-                    width: {cropWidth}px;
-                    height: {cropHeight}px;
-                    border: 5px solid white;
-                "
-                on:touchstart={startDragging}
-                on:touchmove={isDragging ? drag : pinch}
-                on:touchend={stopDragging}
-            />
-        </div>
-        <div class="w-full flex mt-4 justify-between">
-            <button
-                on:click={() => {
-                    console.log('Crop cancel clicked.');
-                }}
-                class="dy-btn dy-btn-sm dy-btn-ghost">{$t['Button_Cancel']}</button
-            >
-            <button on:click={cropImage} class="dy-btn dy-btn-sm dy-btn-ghost"
-                >{$t['Button_OK']}</button
-            >
-        </div>
-    </svelte:fragment>
-</Modal>
+        <!-- Bottom Scrim -->
+        <div
+            class="absolute"
+            style="background-color: rgba(0, 0, 0, 0.5); z-index: 1; top: {cropBox.y +
+                cropBox.height}px; left: 0; width: 100%; height: calc(100% - {cropBox.y +
+                cropBox.height}px);"
+        ></div>
 
-<style>
-</style>
+        <!-- Left Scrim -->
+        <div
+            class="absolute"
+            style="background-color: rgba(0, 0, 0, 0.5); z-index: 1; top: {cropBox.y}px; left: 0; width: {cropBox.x}px; height: {cropBox.height}px;"
+        ></div>
+
+        <!-- Right Scrim -->
+        <div
+            class="absolute"
+            style="background-color: rgba(0, 0, 0, 0.5); z-index: 1; top: {cropBox.y}px; right: 0; width: calc(100% - {cropBox.x +
+                cropBox.width}px); height: {cropBox.height}px;"
+        ></div>
+
+        <!-- Crop box -->
+
+        <div
+            class="absolute border-4 border-white pointer-events-none"
+            style="
+          left: {cropBox.x}px;
+          top: {cropBox.y}px;
+          width: {cropBox.width}px;
+          height: {cropBox.height}px;
+          z-index:2;
+        "
+        ></div>
+    {/if}
+</div>

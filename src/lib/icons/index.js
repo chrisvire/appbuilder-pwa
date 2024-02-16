@@ -9,6 +9,7 @@ import BookmarkOutlineIcon from './BookmarkOutlineIcon.svelte';
 import ChevronIcon from './ChevronIcon.svelte';
 import CopyContentIcon from './CopyContentIcon.svelte';
 import DeleteSweepIcon from './DeleteSweepIcon.svelte';
+import DoneIcon from './DoneIcon.svelte';
 import DownloadIcon from './DownloadIcon.svelte';
 import DropdownIcon from './DropdownIcon.svelte';
 import EditIcon from './EditIcon.svelte';
@@ -43,6 +44,7 @@ export {
     ChevronIcon,
     CopyContentIcon,
     DeleteSweepIcon,
+    DoneIcon,
     DownloadIcon,
     DropdownIcon,
     EditIcon,
