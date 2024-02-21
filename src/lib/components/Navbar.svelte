@@ -4,6 +4,7 @@ The navbar component.
 -->
 <script>
     import { HamburgerIcon, ArrowBackIcon, ArrowForwardIcon } from '$lib/icons';
+    import { goto } from '$app/navigation';
     import {
         layout,
         LAYOUT_TWO,
@@ -15,6 +16,11 @@ The navbar component.
     } from '$lib/data/stores';
     import { page } from '$app/stores';
     import { base } from '$app/paths';
+    //export let home = `${base}/`;
+
+    function goBack() {
+        history.back();
+    }
 
     $: actionBarColor = $s['ui.bar.action']['background-color'];
 </script>
@@ -33,13 +39,13 @@ The navbar component.
                 <HamburgerIcon color="white" />
             </label>
         {:else}
-            <a href="{base}/" class="dy-btn dy-btn-ghost dy-btn-circle">
+            <button class="dy-btn dy-btn-ghost dy-btn-circle" on:click={() => goBack()}>
                 {#if $direction === 'ltr'}
                     <ArrowBackIcon color="white" />
                 {:else}
                     <ArrowForwardIcon color="white" />
                 {/if}
-            </a>
+            </button>
         {/if}
         <slot name="left-buttons" />
     </div>

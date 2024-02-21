@@ -1,3 +1,5 @@
+<svelte:options accessors={true} />
+
 <script>
     import { onMount, createEventDispatcher } from 'svelte';
 
@@ -6,7 +8,7 @@
     const dispatch = createEventDispatcher();
 
     let image;
-    let cropBox = {
+    export let cropBox = {
         x: 0,
         y: 0,
         size: 0,

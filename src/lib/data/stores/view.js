@@ -99,3 +99,5 @@ export const showVerseOnImageBorder = derived(
     userSettings,
     ($userSettings) => $userSettings['verse-on-image-border']
 );
+
+export const cropState = writable({ selectedFile: null, croppedImage: null });
