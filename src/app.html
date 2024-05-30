@@ -8,6 +8,11 @@
         <link rel="stylesheet" type="text/css" href="%sveltekit.assets%/spinner.css" />
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
         %sveltekit.head%
+        <script type="module">
+            if (import.meta.env.VITE_CLEAR_CACHE) {
+                import('%sveltekit.assets%/js/clear-cache.js');
+            }
+        </script>
     </head>
 
     <body>
