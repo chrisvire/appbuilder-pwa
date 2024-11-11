@@ -16,10 +16,12 @@
     } from '$lib/data/stores';
     import { base } from '$app/paths';
     import '$lib/app.css';
+    import initWorker from '$lib/sqlite/loadWorker';
     import TextAppearanceSelector from '$lib/components/TextAppearanceSelector.svelte';
     import CollectionSelector from '$lib/components/CollectionSelector.svelte';
     import NoteDialog from '$lib/components/NoteDialog.svelte';
     import FontSelector from '$lib/components/FontSelector.svelte';
+    import { onMount } from 'svelte';
 
     if (!$refs.initialized) {
         catalog.setFetch(fetch);
@@ -61,6 +63,10 @@
     let collectionSelector;
     let fontSelector;
     let noteDialog;
+
+    onMount(() => {
+        initWorker();
+    });
 </script>
 
 <svelte:head>
