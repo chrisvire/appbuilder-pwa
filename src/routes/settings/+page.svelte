@@ -1,7 +1,8 @@
 <script lang="ts">
     import Navbar from '$lib/components/Navbar.svelte';
     import ScrolledContent from '$lib/components/ScrolledContent.svelte';
-    import { t, userSettings, direction } from '$lib/data/stores';
+    import { t, userSettings, direction, themeColors, development } from '$lib/data/stores';
+    import OpfsExplorer from '$lib/components/OpfsExplorer.svelte';
     import * as s from '$lib/data/stores/setting';
 
     let categories = [];
@@ -101,5 +102,11 @@
                 {/if}
             {/each}
         {/each}
+        {#if $development}
+            <hr class="max-w-screen-md w-full" style:border-color={$themeColors.DividerColor} />
+            <div class="m-4 max-w-screen-md max-w-lg w-full">
+                <OpfsExplorer />
+            </div>
+        {/if}
     </div>
 </div>

@@ -347,15 +347,6 @@ export const userPreferenceSettings = ((): Array<App.UserPreferenceSetting> => {
     }
 
     if (settings.length > 0) {
-        if (get(development)) {
-            settings.push({
-                type: 'checkbox',
-                category: SETTINGS_CATEGORY_INTERFACE,
-                title: 'Desktop Sidebar',
-                key: 'desktop-sidebar'
-            });
-        }
-
         settings.push({
             type: 'checkbox',
             category: SETTINGS_CATEGORY_INTERFACE,
