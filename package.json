@@ -63,6 +63,8 @@
         "ts-node": "^10.8.1",
         "typescript": "^5",
         "vite": "^5",
+        "vite-plugin-cross-origin-isolation": "^0.1.6",
+        "vite-plugin-mkcert": "^1.17.6",
         "vitest": "^2"
     },
     "volta": {
