@@ -18,6 +18,7 @@
             categories[element] = fs;
         }
     });
+    $: showOPFSExplorer = true; //$development;
 </script>
 
 <div
@@ -102,7 +103,7 @@
                 {/if}
             {/each}
         {/each}
-        {#if $development}
+        {#if showOPFSExplorer}
             <hr class="max-w-screen-md w-full" style:border-color={$themeColors.DividerColor} />
             <div class="m-4 max-w-screen-md max-w-lg w-full">
                 <OpfsExplorer />
