@@ -13,6 +13,10 @@ import crossOriginIsolation from 'vite-plugin-cross-origin-isolation';
 /** @type {import('vite').UserConfig} */
 const config = {
     server: {
+        headers: {
+            'Cross-Origin-Opener-Policy': 'same-origin',
+            'Cross-Origin-Embedder-Policy': 'require-corp'
+        },
         https: true,
         proxy: {}
     },
@@ -69,7 +73,8 @@ const config = {
                 }),
                 NodeModulesPolyfillPlugin()
             ]
-        }
+        },
+        exclude: ['@sqlite.org/sqlite-wasm']
     },
     build: {
         rollupOptions: {

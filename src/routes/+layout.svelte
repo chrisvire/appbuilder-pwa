@@ -1,26 +1,26 @@
 <script lang="ts">
-    import catalog from '$lib/data/catalogData';
+    import { base } from '$app/paths';
+    import '$lib/app.css';
+    import CollectionSelector from '$lib/components/CollectionSelector.svelte';
+    import FontSelector from '$lib/components/FontSelector.svelte';
+    import NoteDialog from '$lib/components/NoteDialog.svelte';
     import Sidebar from '$lib/components/Sidebar.svelte';
+    import TextAppearanceSelector from '$lib/components/TextAppearanceSelector.svelte';
+    import catalog from '$lib/data/catalogData';
     import {
         analytics,
         direction,
-        s,
-        refs,
-        theme,
         modal,
         MODAL_COLLECTION,
+        MODAL_FONT,
         MODAL_NOTE,
         MODAL_TEXT_APPERANCE,
         NAVBAR_HEIGHT,
-        MODAL_FONT
+        refs,
+        s,
+        theme
     } from '$lib/data/stores';
-    import { base } from '$app/paths';
-    import '$lib/app.css';
-    import initWorker from '$lib/sqlite/loadWorker';
-    import TextAppearanceSelector from '$lib/components/TextAppearanceSelector.svelte';
-    import CollectionSelector from '$lib/components/CollectionSelector.svelte';
-    import NoteDialog from '$lib/components/NoteDialog.svelte';
-    import FontSelector from '$lib/components/FontSelector.svelte';
+    import { initializeSQLite } from '$lib/sqlite/init';
     import { onMount } from 'svelte';
 
     if (!$refs.initialized) {
@@ -65,7 +65,7 @@
     let noteDialog;
 
     onMount(() => {
-        initWorker();
+        initializeSQLite();
     });
 </script>
 

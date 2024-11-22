@@ -27,6 +27,7 @@
     "devDependencies": {
         "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
         "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
+        "@sqlite.org/sqlite-wasm": "^3.47.0-build1",
         "@sveltejs/adapter-static": "^3",
         "@sveltejs/kit": "^2",
         "@tailwindcss/typography": "^0.5.2",
