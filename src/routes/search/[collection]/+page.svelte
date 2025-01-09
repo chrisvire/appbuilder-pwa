@@ -1,29 +1,29 @@
 <script lang="ts">
-    import { t, themeColors } from '$lib/data/stores';
+    import { goto } from '$app/navigation';
     import Navbar from '$lib/components/Navbar.svelte';
     import SearchForm from '$lib/components/SearchForm.svelte';
+    import SearchResultList from '$lib/components/SearchResultList.svelte';
+    import { t, themeColors } from '$lib/data/stores';
+    import { getRoute } from '$lib/navigate';
     import type { SearchResult } from '$lib/search/domain/entities';
     import type {
         SearchPresenter,
         UserSearchOptions
     } from '$lib/search/domain/interfaces/presentation-interfaces';
     import { makeSearchSession } from '$lib/search/factories';
-    import SearchResultList from '$lib/components/SearchResultList.svelte';
-    import { onMount, tick, type ComponentEvents } from 'svelte';
-    import { goto } from '$app/navigation';
-    import { getRoute } from '$lib/navigate';
-    export let data;
+    import { onMount } from 'svelte';
+    let { data } = $props();
 
-    let phrase: string;
-    let wholeWords: boolean;
-    let matchAccents: boolean;
+    let phrase: string = $state();
+    let wholeWords: boolean = $state();
+    let matchAccents: boolean = $state();
 
-    let results: SearchResult[] = [];
-    let queryId = 0;
-    let queryDone = true;
-    let restoreResults = false; // Whether saved results are currently being loaded
+    let results: SearchResult[] = $state([]);
+    let queryId = $state(0);
+    let queryDone = $state(true);
+    let restoreResults = $state(false); // Whether saved results are currently being loaded
 
-    let scrollDiv;
+    let scrollDiv: HTMLDivElement;
     let scrollPosition = 0;
     let scrollSaved = false;
 
@@ -48,15 +48,15 @@
 
     const session = makeSearchSession(presenter);
 
-    function handleSubmit(event: ComponentEvents<SearchForm>['submit']) {
+    function submit(e: { phrase: string; wholeWords: boolean; matchAccents: boolean }) {
         goto(getRoute(`/search/${data.collection}?savedResults=true`));
         queryId++;
         const options = {
             collection: data.collection,
-            wholeWords: event.detail.wholeWords,
-            matchAccents: event.detail.matchAccents
+            wholeWords: e.wholeWords,
+            matchAccents: e.matchAccents
         };
-        session.submit(event.detail.phrase, options);
+        session.submit(e.phrase, options);
     }
 
     /**
@@ -108,15 +108,17 @@
 <div class="grid grid-rows-[auto,1fr,auto]" style="height:100vh;height:100dvh;">
     <div class="navbar">
         <Navbar>
-            <label for="sidebar" slot="center">
-                <div class="btn btn-ghost normal-case text-xl">{$t['Search']}</div>
-            </label>
+            {#snippet center()}
+                <label for="sidebar">
+                    <div class="btn btn-ghost normal-case text-xl">{$t['Search']}</div>
+                </label>
+            {/snippet}
         </Navbar>
     </div>
 
-    <div class="overflow-auto" bind:this={scrollDiv} on:scroll={onScroll}>
+    <div class="overflow-auto" bind:this={scrollDiv} onscroll={onScroll}>
         <div class="flex justify-center">
-            <SearchForm on:submit={handleSubmit} bind:phrase bind:wholeWords bind:matchAccents />
+            <SearchForm {submit} bind:phrase bind:wholeWords bind:matchAccents />
         </div>
 
         <div class="flex justify-center px-4">

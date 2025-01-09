@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import {
         bodyFontSize,
         convertStyle,
@@ -12,22 +14,19 @@
     import { onMount } from 'svelte';
     import SearchResultCard from './SearchResultCard.svelte';
 
-    export let collection: string;
-    export let results: SearchResult[];
-    export let queryDone: boolean;
-    export let restore: boolean;
+    interface Props {
+        collection: string;
+        results: SearchResult[];
+        queryDone: boolean;
+        restore: boolean;
+        // Changes to signal when to clear results
+        queryId: number;
+    }
 
-    // Changes to signal when to clear results
-    export let queryId: number;
-
-    $: showSpinner = !queryDone && results.length === 0;
+    let { collection, results, queryDone, restore = $bindable(), queryId }: Props = $props();
 
     let displayQueryId = queryId;
-    let resultsShown: SearchResult[] = [];
-
-    $: clearResults(queryId);
-    $: results, onResults();
-    $: resultCountText = formatResultCount(results.length);
+    let resultsShown: SearchResult[] = $state([]);
 
     function onResults() {
         if (restore) {
@@ -116,6 +115,14 @@
             }
         };
     });
+    let showSpinner = $derived(!queryDone && results.length === 0);
+    run(() => {
+        clearResults(queryId);
+    });
+    run(() => {
+        results, onResults();
+    });
+    let resultCountText = $derived(formatResultCount(results.length));
 </script>
 
 <div id="container" class="search-result p-2 max-w-screen-md w-full">

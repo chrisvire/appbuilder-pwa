@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import { s, t, userSettings } from '$lib/data/stores';
     import { AudioIcon } from '$lib/icons';
     import Modal from './Modal.svelte';
@@ -9,15 +9,15 @@
         $userSettings['audio-speed'] = event.target.value;
     }
 
-    $: iconColor = $s['ui.bar.audio.icon']['color'];
+    let iconColor = $derived($s['ui.bar.audio.icon']['color']);
 </script>
 
 <Modal id={modalId} addCSS="position:absolute; bottom:1rem; right:1rem;"
     ><!--addCSS injects CSS into the modal to position it 1rem away from the bottom and right edges of the screen (on mobile it will be centered)-->
-    <svelte:fragment slot="label">
+    {#snippet label()}
         <AudioIcon.Speed color={iconColor} />
-    </svelte:fragment>
-    <svelte:fragment slot="content">
+    {/snippet}
+    {#snippet content()}
         <h1>
             <b style="">{$t['Settings_Audio_Speed']}</b>
         </h1>
@@ -106,7 +106,7 @@
                 <button class="dy-btn dy-btn-ghost">{$t['Button_Close']}</button>
             </div>
         </div>
-    </svelte:fragment>
+    {/snippet}
 </Modal>
 
 <style>

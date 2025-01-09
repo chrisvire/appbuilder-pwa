@@ -1,20 +1,19 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import Navbar from '$lib/components/Navbar.svelte';
     import { t, language, languageDefault } from '$lib/data/stores';
     import config from '$lib/data/config';
     import { base } from '$app/paths';
-    import { page } from '$app/stores';
+    import { page } from '$app/state';
     import { shareText } from '$lib/data/share';
     import { logShareApp } from '$lib/data/analytics';
 
     const googlePlayBadgesRoot = 'https://play.google.com/intl/en_us/badges/static/images/badges/';
     const googlePlayBadgeSuffix = '_badge_web_generic.png';
-    let googlePlayStoreLanguage = 'en';
-    $: updateGooglePlayLanguage($language);
+    let googlePlayStoreLanguage = $state('en');
 
-    $: googlePlayBadge = googlePlayBadgesRoot + googlePlayStoreLanguage + googlePlayBadgeSuffix;
-    $: appStoreBadge = `${base}/badges/${$language}_app_store.svg`;
-    const badgeLanguages = $page.data.languages;
+    const badgeLanguages = page.data.languages;
     const fallbackAppStoreLanguage = badgeLanguages.includes(languageDefault)
         ? languageDefault
         : 'en';
@@ -50,24 +49,31 @@
         const appType = 'share-link';
         logShareApp(appName, appVersion, appType);
     }
+    run(() => {
+        updateGooglePlayLanguage($language);
+    });
+    let googlePlayBadge = $derived(
+        googlePlayBadgesRoot + googlePlayStoreLanguage + googlePlayBadgeSuffix
+    );
+    let appStoreBadge = $derived(`${base}/badges/${$language}_app_store.svg`);
 </script>
 
 <!-- TODO: make share functional -->
 <div class="grid grid-rows-[auto,1fr]" style="height:100vh;height:100dvh;">
     <div class="navbar">
         <Navbar>
-            <!-- <div slot="left-buttons" /> -->
-            <label for="sidebar" slot="center">
-                <div class="btn btn-ghost normal-case text-xl">{$t['Menu_Share_App']}</div>
-            </label>
-            <!-- <div slot="right-buttons" /> -->
+            {#snippet center()}
+                <label for="sidebar">
+                    <div class="btn btn-ghost normal-case text-xl">{$t['Menu_Share_App']}</div>
+                </label>
+            {/snippet}
         </Navbar>
     </div>
     <div id="content" class="overflow-y-auto">
         <div id="grid" class="flex flex-col sm:flex-row mt-12 justify-center gap-8 items-center">
             {#if config.mainFeatures['share-app-link']}
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
                 <div
                     id="google-play"
                     class="w-48 md:w-72 lg:w-[25rem]"
@@ -81,8 +87,8 @@
                 </div>
             {/if}
             {#if config.mainFeatures['share-apple-app-link']}
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
                 <div
                     id="apple-store"
                     class="w-48 md:w-64 lg:w-96"

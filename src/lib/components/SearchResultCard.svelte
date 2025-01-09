@@ -8,9 +8,13 @@ A clickable verse card representing a single search result.
     import * as numerals from '$lib/scripts/numeralSystem';
     import type { Reference, SearchResult } from '$lib/search/domain/entities';
 
-    export let docSet: string;
-    export let collection: string;
-    export let result: SearchResult;
+    interface Props {
+        docSet: string;
+        collection: string;
+        result: SearchResult;
+    }
+
+    let { docSet, collection, result }: Props = $props();
 
     interface ReferenceDisplay {
         book: string;

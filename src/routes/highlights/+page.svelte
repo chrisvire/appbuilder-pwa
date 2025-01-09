@@ -1,16 +1,16 @@
 <script lang="ts">
-    import ColorCard from '$lib/components/ColorCard.svelte';
-    import SortMenu from '$lib/components/SortMenu.svelte';
-    import ShareIcon from '$lib/icons/ShareIcon.svelte';
-    import Navbar from '$lib/components/Navbar.svelte';
-    import { bodyFontSize, refs, t } from '$lib/data/stores';
-    import { formatDate } from '$lib/scripts/dateUtils';
-    import { removeHighlight, type HighlightItem } from '$lib/data/highlights';
-    import { SORT_COLOR, SORT_DATE, SORT_REFERENCE, toSorted } from '$lib/data/annotation-sort';
-    import { page } from '$app/stores';
     import { goto } from '$app/navigation';
+    import { page } from '$app/state';
+    import ColorCard from '$lib/components/ColorCard.svelte';
+    import Navbar from '$lib/components/Navbar.svelte';
+    import SortMenu from '$lib/components/SortMenu.svelte';
     import { shareAnnotation, shareAnnotations } from '$lib/data/annotation-share';
+    import { SORT_COLOR, SORT_DATE, SORT_REFERENCE, toSorted } from '$lib/data/annotation-sort';
+    import { removeHighlight, type HighlightItem } from '$lib/data/highlights';
+    import { bodyFontSize, refs, t } from '$lib/data/stores';
+    import ShareIcon from '$lib/icons/ShareIcon.svelte';
     import { getRoute } from '$lib/navigate';
+    import { formatDate } from '$lib/scripts/dateUtils';
 
     async function handleMenuaction(event: CustomEvent, highlight: HighlightItem) {
         switch (event.detail.text) {
@@ -49,29 +49,31 @@
         ]
     };
 
-    let sortOrder = SORT_DATE;
+    let sortOrder = $state(SORT_DATE);
 </script>
 
 <div class="grid grid-rows-[auto,1fr]" style="height:100vh;height:100dvh;">
     <div class="navbar">
         <Navbar>
-            <!-- <div slot="left-buttons" /> -->
-            <label for="sidebar" slot="center">
-                <div class="btn btn-ghost normal-case text-xl">{$t['Annotation_Highlights']}</div>
-            </label>
+            {#snippet center()}
+                <label for="sidebar">
+                    <div class="btn btn-ghost normal-case text-xl">
+                        {$t['Annotation_Highlights']}
+                    </div>
+                </label>
+            {/snippet}
 
-            <!-- svelte-ignore a11y-label-has-associated-control -->
-            <div slot="right-buttons">
+            <!-- svelte-ignore a11y_label_has_associated_control -->
+            {#snippet end()}
                 <button
                     class="dy-btn dy-btn-ghost dy-btn-circle"
                     onclick={async () =>
-                        await shareAnnotations(toSorted($page.data.highlights, sortOrder))}
+                        await shareAnnotations(toSorted(page.data.highlights, sortOrder))}
                 >
                     <ShareIcon color="white" />
                 </button>
                 <SortMenu on:menuaction={(e) => handleSortAction(e)} {...sortMenu} />
-            </div>
-            <!-- <div slot="right-buttons" /> -->
+            {/snippet}
         </Navbar>
     </div>
 
@@ -79,11 +81,11 @@
         class="overflow-y-auto p-2.5 max-w-screen-md mx-auto w-full"
         style:font-size="{$bodyFontSize}px"
     >
-        {#if $page.data.highlights.length === 0}
+        {#if page.data.highlights.length === 0}
             <div class="annotation-message-none">{$t['Annotation_Highlights_None']}</div>
             <div class="annotation-message-none-info">{$t['Annotation_Highlights_None_Info']}</div>
         {:else}
-            {#each toSorted($page.data.highlights, sortOrder) as h}
+            {#each toSorted(page.data.highlights, sortOrder) as h}
                 {@const colorCard = {
                     docSet: h.docSet,
                     book: h.book,

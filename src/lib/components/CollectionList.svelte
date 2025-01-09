@@ -5,17 +5,19 @@ Custom list of collections for the LayoutOptions menu
 <script lang="ts">
     import { base } from '$app/paths';
     import { themeColors } from '$lib/data/stores';
-    import { createEventDispatcher } from 'svelte';
 
-    // array of all selectable docsets
-    export let docSets: App.CollectionEntry[] = [];
-    // selected docset to highlight
-    export let selectedLayouts: App.CollectionEntry;
+    interface Props {
+        // array of all selectable docsets
+        docSets?: App.CollectionEntry[];
+        // selected docset to highlight
+        selectedLayouts: App.CollectionEntry;
+        collectionMenuAction: (e: App.CollectionListMenuAction) => void;
+    }
 
-    const dispatch = createEventDispatcher();
+    let { docSets = [], selectedLayouts, collectionMenuAction }: Props = $props();
 
     function handleClick(opt: App.CollectionEntry) {
-        dispatch('menuaction', {
+        collectionMenuAction({
             collection: opt
         });
     }
@@ -23,10 +25,10 @@ Custom list of collections for the LayoutOptions menu
 
 <ul class="dy-menu dy-menu-compact">
     {#each docSets as d}
-        <!-- svelte-ignore a11y-missing-attribute -->
+        <!-- svelte-ignore a11y_missing_attribute -->
         <li>
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <!-- svelte-ignore a11y-interactive-supports-focus -->
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <!-- svelte-ignore a11y_interactive_supports_focus -->
             <a
                 onclick={() => handleClick(d)}
                 style:background-color={selectedLayouts.id === d.id

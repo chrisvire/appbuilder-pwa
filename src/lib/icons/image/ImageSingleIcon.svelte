@@ -1,8 +1,13 @@
 <script lang="ts">
     // From app-builders/source/scripture/app-android-scripture/src/main/res/drawable-xxxhdpi/ic_image_black_24.png
-    // Converted with https://vectorizer.ai/
-    export let color = 'black';
-    export let size = '24';
+
+    interface Props {
+        // Converted with https://vectorizer.ai/
+        color?: string;
+        size?: string;
+    }
+
+    let { color = 'black', size = '24' }: Props = $props();
 </script>
 
 <svg

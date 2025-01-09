@@ -1,23 +1,13 @@
 <script>
-    import { page } from '$app/stores';
+    import { run } from 'svelte/legacy';
     import Navbar from '$lib/components/Navbar.svelte';
-
-    import {
-        language,
-        s,
-        t,
-        convertStyle,
-        themeColors,
-        modal,
-        MODAL_COLLECTION,
-        MODAL_TEXT_APPEARANCE
-    } from '$lib/data/stores';
+    import { goto } from '$app/navigation';
     import { base } from '$app/paths';
+    import BottomNavigationBar from '$lib/components/BottomNavigationBar.svelte';
     import config from '$lib/data/config';
     import { getLastPlanState } from '$lib/data/planStates';
+    import { convertStyle, language, s, t } from '$lib/data/stores';
     import { compareVersions } from '$lib/scripts/stringUtils';
-    import { goto } from '$app/navigation';
-    import BottomNavigationBar from '$lib/components/BottomNavigationBar.svelte';
 
     const imageFolder =
         compareVersions(config.programVersion, '12.0') < 0 ? 'illustrations' : 'plans';
@@ -27,13 +17,13 @@
     // //what plans are viewed based on what tab is selected
     // $: viewedPlans =
 
-    let selectedTab = 'available';
+    let selectedTab = $state('available');
 
-    let availablePlans = [];
-    let completedPlans = [];
-    let usedPlans = [];
+    let availablePlans = $state([]);
+    let completedPlans = $state([]);
+    let usedPlans = $state([]);
     let allPlans = config.plans.plans || [];
-    let plansInUse = [];
+    let plansInUse = $state([]);
     const promises = allPlans.map((plan) =>
         getLastPlanState(plan.id)
             .then((planState) => {
@@ -52,12 +42,12 @@
         }
     });
 
-    $: {
+    run(() => {
         availablePlans = allPlans.filter(
             (plan) => !plansInUse.some((usedPlan) => usedPlan.id === plan.id)
         );
         usedPlans = plansInUse;
-    }
+    });
     const bottomNavBarEnabled = config?.bottomNavBarItems && config?.bottomNavBarItems.length > 0;
     const barType = 'plans';
 </script>
@@ -65,11 +55,11 @@
 <div class="grid grid-rows-[auto,1fr]" style="height:100vh;height:100dvh;">
     <div class="navbar">
         <Navbar>
-            <!-- <div slot="left-buttons" /> -->
-            <label for="sidebar" slot="center">
-                <div class="btn btn-ghost normal-case text-xl">{$t['Menu_Plans']}</div>
-            </label>
-            <!-- <div slot="right-buttons" class="flex items-center"> -->
+            {#snippet center()}
+                <label for="sidebar">
+                    <div class="btn btn-ghost normal-case text-xl">{$t['Menu_Plans']}</div>
+                </label>
+            {/snippet}
         </Navbar>
     </div>
 
@@ -119,8 +109,8 @@
                 <ul>
                     {#each availablePlans as plan}
                         <!-- add on click -->
-                        <!-- svelte-ignore a11y-click-events-have-key-events -->
-                        <!-- svelte-ignore a11y-no-static-element-interactions -->
+                        <!-- svelte-ignore a11y_click_events_have_key_events -->
+                        <!-- svelte-ignore a11y_no_static_element_interactions -->
                         <div
                             class="plan-chooser-plan plan-chooser-link"
                             id={plan.id}
@@ -151,8 +141,8 @@
             {:else if selectedTab === 'in-use'}
                 <ul>
                     {#each usedPlans as plan}
-                        <!-- svelte-ignore a11y-click-events-have-key-events -->
-                        <!-- svelte-ignore a11y-no-static-element-interactions -->
+                        <!-- svelte-ignore a11y_click_events_have_key_events -->
+                        <!-- svelte-ignore a11y_no_static_element_interactions -->
                         <div
                             class="plan-chooser-plan plan-chooser-link"
                             id={plan.id}
@@ -183,8 +173,8 @@
             {:else if selectedTab === 'completed'}
                 <ul>
                     {#each completedPlans as plan}
-                        <!-- svelte-ignore a11y-click-events-have-key-events -->
-                        <!-- svelte-ignore a11y-no-static-element-interactions -->
+                        <!-- svelte-ignore a11y_click_events_have_key_events -->
+                        <!-- svelte-ignore a11y_no_static_element_interactions -->
                         <div
                             class="plan-chooser-plan plan-chooser-link"
                             id={plan.id}

@@ -1,32 +1,28 @@
 <script>
-    import { page } from '$app/stores';
+    import { goto } from '$app/navigation';
+    import { base } from '$app/paths';
+    import { page } from '$app/state';
+    import BottomNavigationBar from '$lib/components/BottomNavigationBar.svelte';
     import Navbar from '$lib/components/Navbar.svelte';
+    import config from '$lib/data/config';
     import {
+        contentsFontSize,
+        contentsStack,
+        convertStyle,
         language,
-        s,
-        t,
-        themeColors,
         modal,
         MODAL_COLLECTION,
-        convertStyle,
-        contentsStack,
         MODAL_TEXT_APPEARANCE,
-        contentsFontSize
+        s,
+        themeColors
     } from '$lib/data/stores';
-    import { compareVersions } from '$lib/scripts/stringUtils';
-    import { base } from '$app/paths';
-    import { navigateToText } from '$lib/navigate';
-    import { goto } from '$app/navigation';
-    import config from '$lib/data/config';
     import { AudioIcon, TextAppearanceIcon } from '$lib/icons';
-    import BottomNavigationBar from '$lib/components/BottomNavigationBar.svelte';
-    import { getRoute } from '$lib/navigate';
+    import { getRoute, navigateToText } from '$lib/navigate';
+    import { compareVersions } from '$lib/scripts/stringUtils';
 
     const imageFolder =
         compareVersions(config.programVersion, '12.0') < 0 ? 'illustrations' : 'contents';
     const audioFolder = compareVersions(config.programVersion, '12.0') < 0 ? 'assets' : 'contents';
-    $: highlightColor = $themeColors['ContentsItemTouchColor'];
-    $: title = setTitle($page);
 
     function playAudio(event, item) {
         event.stopPropagation();
@@ -56,12 +52,12 @@
         switch (item.linkType) {
             //reference linkType
             case 'reference':
-                contentsStack.pushItem($page.data.menu.id);
+                contentsStack.pushItem(page.data.menu.id);
                 await navigateToText(getReference(item));
                 break;
             case 'screen':
                 //goes to another contents page
-                contentsStack.pushItem($page.data.menu.id);
+                contentsStack.pushItem(page.data.menu.id);
                 await goto(getRoute(`/contents/${item.linkTarget}`));
                 break;
             case 'other':
@@ -160,31 +156,33 @@
         return title;
     }
 
-    function handleBackNavigation(event) {
-        event.preventDefault();
+    function backNavigation() {
         if ($contentsStack.length > 0) {
             const menuId = contentsStack.popItem();
             goto(getRoute(`/contents/${menuId}`));
         }
     }
-    $: showBackButton = $contentsStack.length > 0;
     const bottomNavBarEnabled = config?.bottomNavBarItems && config?.bottomNavBarItems.length > 0;
     const barType = 'contents';
+    let highlightColor = $derived($themeColors['ContentsItemTouchColor']);
+    let title = $derived(setTitle(page));
+    let showBackButton = $derived($contentsStack.length > 0);
 </script>
 
 <div class="grid grid-rows-[auto,1fr]" style="height:100vh;height:100dvh;">
     <div class="navbar">
-        <Navbar on:backNavigation={handleBackNavigation} {showBackButton}>
-            <!-- <div slot="left-buttons" /> -->
-            <label for="sidebar" slot="center">
-                <div class="btn btn-ghost normal-case text-xl">{title}</div>
-            </label>
-            <div slot="right-buttons" class="flex items-center">
+        <Navbar {backNavigation} {showBackButton}>
+            {#snippet center()}
+                <label for="sidebar">
+                    <div class="btn btn-ghost normal-case text-xl">{title}</div>
+                </label>
+            {/snippet}
+            {#snippet end()}
                 <div class="flex">
-                    {#if $page.data.features['show-text-size-button'] === true}
-                        <!-- svelte-ignore a11y-click-events-have-key-events -->
-                        <!-- svelte-ignore a11y-label-has-associated-control -->
-                        <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+                    {#if page.data.features['show-text-size-button'] === true}
+                        <!-- svelte-ignore a11y_click_events_have_key_events -->
+                        <!-- svelte-ignore a11y_label_has_associated_control -->
+                        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                         <label
                             class="dy-btn dy-btn-ghost p-0.5 dy-no-animation"
                             onclick={() =>
@@ -194,17 +192,17 @@
                         </label>
                     {/if}
                 </div>
-            </div>
+            {/snippet}
         </Navbar>
     </div>
 
     <div class="overflow-y-auto mx-auto max-w-screen-md">
         <div id="container" class="contents" style={convertStyle($s['body.contents'])}>
-            {#each $page.data.items as item}
+            {#each page.data.items as item}
                 <!-- iterate through the items, adding html -->
 
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
                 <div
                     class="contents-item-block contents-link-ref"
                     id={item.id}
@@ -212,8 +210,8 @@
                 >
                     <!--check for the various elements in the item-->
                     {#if item.audioFilename[$language] || item.audioFilename.default}
-                        <!-- svelte-ignore a11y-click-events-have-key-events -->
-                        <!-- svelte-ignore a11y-no-static-element-interactions -->
+                        <!-- svelte-ignore a11y_click_events_have_key_events -->
+                        <!-- svelte-ignore a11y_no_static_element_interactions -->
                         <div
                             class="contents-item-audio-image"
                             onclick={(event) => playAudio(event, item)}
@@ -239,21 +237,21 @@
 
                     <div class="contents-text-block" style:font-size="{$contentsFontSize}px">
                         <!-- check for title -->
-                        {#if $page.data.features['show-titles'] === true}
+                        {#if page.data.features['show-titles'] === true}
                             <div class="contents-title">
                                 {item.title[$language] ?? item.title.default ?? ''}
                             </div>
                         {/if}
 
                         <!--Check for subtitle-->
-                        {#if $page.data.features['show-subtitles'] === true}
+                        {#if page.data.features['show-subtitles'] === true}
                             <div class="contents-subtitle">
                                 {item.subtitle[$language] ?? item.subtitle.default ?? ''}
                             </div>
                         {/if}
 
                         <!--check for reference -->
-                        {#if $page.data.features['show-references'] === true}
+                        {#if page.data.features['show-references'] === true}
                             {#if item.linkType === 'reference'}
                                 <div class="contents-ref">{item.linkTarget}</div>
                             {/if}

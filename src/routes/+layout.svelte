@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import { base } from '$app/paths';
     import '$lib/app.css';
     import FontSelector from '$lib/components/FontSelector.svelte';
@@ -24,6 +26,11 @@
     } from '$lib/data/stores';
     import '$lib/app.css';
     import PlanStopDialog from '$lib/components/PlanStopDialog.svelte';
+    interface Props {
+        children?: import('svelte').Snippet;
+    }
+
+    let { children }: Props = $props();
 
     const isSAB = config.programType == 'SAB';
 
@@ -36,9 +43,6 @@
     if (!$analytics.initialized) {
         analytics.init();
     }
-
-    $: showPage = !isSAB || $refs.initialized;
-    $: $modal, showModal();
 
     function showModal() {
         if ($modal.length > 0) {
@@ -68,11 +72,15 @@
         }
     }
 
-    let textAppearanceSelector;
-    let collectionSelector;
-    let fontSelector;
-    let noteDialog;
-    let planStopDialog;
+    let textAppearanceSelector = $state();
+    let collectionSelector = $state();
+    let fontSelector = $state();
+    let noteDialog = $state();
+    let planStopDialog = $state();
+    let showPage = $derived(!isSAB || $refs.initialized);
+    run(() => {
+        $modal, showModal();
+    });
 </script>
 
 <svelte:head>
@@ -113,7 +121,7 @@
             style="height:100vh;height:100dvh;"
             style:direction={$direction}
         >
-            <slot />
+            {@render children?.()}
         </div>
     </Sidebar>
 {/if}

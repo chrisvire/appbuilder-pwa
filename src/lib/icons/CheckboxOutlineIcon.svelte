@@ -3,9 +3,14 @@
     // Filled = 0
     // Weight = 400
     // Grade = 0
-    // Optical size = 24px
-    export let color = 'black';
-    export let size = 24;
+
+    interface Props {
+        // Optical size = 24px
+        color?: string;
+        size?: number;
+    }
+
+    let { color = 'black', size = 24 }: Props = $props();
 </script>
 
 <svg xmlns="http://www.w3.org/2000/svg" height={size} viewBox="0 0 24 24" width={size} fill={color}

@@ -1,4 +1,4 @@
-<svelte:options accessors={true} />
+<svelte:options ={true} />
 
 <script lang="ts">
     import { addNote, editNote } from '$lib/data/notes';
@@ -6,15 +6,19 @@
     import { EditIcon } from '$lib/icons';
     import Modal from './Modal.svelte';
 
-    export let note = undefined;
-    export let editing = false;
+    interface Props {
+        note?: any;
+        editing?: boolean;
+    }
+
+    let { note = undefined, editing = $bindable(false) }: Props = $props();
 
     let id = 'note';
-    let modal;
-    let title: string;
-    let text: string;
+    let modal: Modal;
+    let title: string = $state();
+    let text: string = $state();
 
-    $: heading = editing ? ($t[title] ?? '') : (note?.reference ?? '');
+    let heading = $derived(editing ? ($t[title] ?? '') : (note?.reference ?? ''));
 
     export function showModal() {
         if (note !== undefined) {
@@ -51,51 +55,58 @@
             });
         }
     }
+
+    export {
+    	note,
+    	editing,
+    }
 </script>
 
-<Modal bind:this={modal} {id} on:close={reset} useLabel={false}>
-    <svelte:fragment slot="content">
-        <div id="container" class="flex flex-col justify-evenly">
-            <div class="w-full flex justify-between">
-                <div
-                    class="annotation-item-title w-full pb-3"
-                    style:font-weight={editing ? 'normal' : 'bold'}
-                >
-                    {heading}
-                </div>
-                {#if !editing}
-                    <button
-                        onclick={() => {
-                            editing = true;
-                        }}
+<Modal bind:this={modal} {id} onclose={reset} useLabel={false}>
+    {#snippet content()}
+    
+            <div id="container" class="flex flex-col justify-evenly">
+                <div class="w-full flex justify-between">
+                    <div
+                        class="annotation-item-title w-full pb-3"
+                        style:font-weight={editing ? 'normal' : 'bold'}
                     >
-                        <EditIcon />
-                    </button>
-                {/if}
-            </div>
-            <div style:word-wrap="break-word">
+                        {heading}
+                    </div>
+                    {#if !editing}
+                        <button
+                            onclick={() => {
+                                editing = true;
+                            }}
+                        >
+                            <EditIcon />
+                        </button>
+                    {/if}
+                </div>
+                <div style:word-wrap="break-word">
+                    {#if editing}
+                        <textarea bind:value={text} class="dy-textarea w-full"></textarea>
+                    {:else if text !== undefined}
+                        {#each text.split(/\r?\n/) as line}
+                            {#if line}
+                                <p style:font-family={$currentFont} style:font-size="{$bodyFontSize}px">
+                                    {line}
+                                </p>
+                            {:else}
+                                <br />
+                            {/if}
+                        {/each}
+                    {/if}
+                </div>
                 {#if editing}
-                    <textarea bind:value={text} class="dy-textarea w-full"></textarea>
-                {:else if text !== undefined}
-                    {#each text.split(/\r?\n/) as line}
-                        {#if line}
-                            <p style:font-family={$currentFont} style:font-size="{$bodyFontSize}px">
-                                {line}
-                            </p>
-                        {:else}
-                            <br />
-                        {/if}
-                    {/each}
+                    <div class="w-full flex mt-4 justify-between">
+                        <button class="dy-btn dy-btn-sm dy-btn-ghost">{$t['Button_Cancel']}</button>
+                        <button onclick={modifyNote} class="dy-btn dy-btn-sm dy-btn-ghost"
+                            >{$t['Button_OK']}</button
+                        >
+                    </div>
                 {/if}
             </div>
-            {#if editing}
-                <div class="w-full flex mt-4 justify-between">
-                    <button class="dy-btn dy-btn-sm dy-btn-ghost">{$t['Button_Cancel']}</button>
-                    <button onclick={modifyNote} class="dy-btn dy-btn-sm dy-btn-ghost"
-                        >{$t['Button_OK']}</button
-                    >
-                </div>
-            {/if}
-        </div>
-    </svelte:fragment>
+        
+    {/snippet}
 </Modal>

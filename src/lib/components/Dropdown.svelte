@@ -4,9 +4,15 @@ A simple dropdown menu from DaisyUI.
 -->
 <script lang="ts">
     import { convertStyle, s } from '$lib/data/stores';
-    import { createEventDispatcher, onDestroy } from 'svelte';
-    export let cols = 6;
-    const dispatch = createEventDispatcher();
+    import { onDestroy, type Snippet } from 'svelte';
+    interface Props {
+        cols?: number;
+        label?: Snippet;
+        content?: Snippet;
+        navend?: () => void;
+    }
+
+    let { cols = 6, label, content, navend }: Props = $props();
 
     let details: HTMLDetailsElement;
     let container: HTMLDivElement;
@@ -27,7 +33,7 @@ A simple dropdown menu from DaisyUI.
             document.addEventListener('click', clickOutside);
         } else {
             document.removeEventListener('click', clickOutside);
-            dispatch('nav-end');
+            navend?.();
         }
     }
 
@@ -39,19 +45,19 @@ A simple dropdown menu from DaisyUI.
 <!-- https://github.com/saadeghi/daisyui/discussions/2469 
      how to make dropdown align with screen instead of label -->
 <details bind:this={details} class="dy-dropdown max-sm:[position:unset]" ontoggle={onToggle}>
-    <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
     <summary class="dy-btn dy-btn-ghost p-0.5 no-animation flex-nowrap">
-        <slot name="label" />
+        {@render label?.()}
     </summary>
-    <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
     <div
         bind:this={container}
         class="dy-dropdown-content dy-menu drop-shadow-lg mt-2.5 bg-base-100 z-10 max-sm:absolute max-sm:start-1.5"
         class:min-w-[22rem]={cols == 6}
         class:min-w-[18rem]={cols == 5}
         style={convertStyle($s['ui.background'])}
-        onblur={() => dispatch('nav-end')}
+        onblur={() => navend?.()}
     >
-        <slot name="content" />
+        {@render content?.()}
     </div>
 </details>

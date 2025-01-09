@@ -12,6 +12,8 @@ TODO:
 - Add highlight colors
 -->
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import { getBook, logShareContent } from '$lib/data/analytics';
     import { play, seekToVerse } from '$lib/data/audio';
     import { addBookmark, findBookmark, removeBookmark } from '$lib/data/bookmarks';
@@ -46,17 +48,8 @@ TODO:
     const isHighlightEnabled = config?.mainFeatures['annotation-highlights'];
     const isNotesEnabled = config?.mainFeatures['annotation-notes'];
 
-    let selectedVerseInBookmarks = -1;
-    let showHightlightPens = false;
-
-    $: isCopyEnabled = config.bookCollections.find((x) => x.id === $refs.collection).features[
-        'bc-allow-copy-text'
-    ];
-    $: isShareEnabled = config.bookCollections.find((x) => x.id === $refs.collection).features[
-        'bc-allow-share-text'
-    ];
-    $: $selectedVerses, updateSelectedVerseInBookmarks($selectedVerses);
-    $: buttonBorder = '1px solid ' + ($theme === 'Dark' ? '#FFFFFF' : '#888888');
+    let selectedVerseInBookmarks = $state(-1);
+    let showHightlightPens = $state(false);
 
     async function updateSelectedVerseInBookmarks(selectedVerses) {
         selectedVerseInBookmarks = await findBookmark({
@@ -125,14 +118,26 @@ TODO:
         logShareContent('Text', bookCol, bookAbbrev, reference);
     }
 
-    $: barBackgroundColor = $s['ui.bar.text-select']['background-color'];
-    $: barIconColor = $s['ui.bar.text-select.icon']['color'];
     const dispatch = createEventDispatcher();
     function notifyTextCopied(text) {
         dispatch('copied', {
             text
         });
     }
+    let isCopyEnabled = $derived(
+        config.bookCollections.find((x) => x.id === $refs.collection).features['bc-allow-copy-text']
+    );
+    let isShareEnabled = $derived(
+        config.bookCollections.find((x) => x.id === $refs.collection).features[
+            'bc-allow-share-text'
+        ]
+    );
+    run(() => {
+        $selectedVerses, updateSelectedVerseInBookmarks($selectedVerses);
+    });
+    let buttonBorder = $derived('1px solid ' + ($theme === 'Dark' ? '#FFFFFF' : '#888888'));
+    let barBackgroundColor = $derived($s['ui.bar.text-select']['background-color']);
+    let barIconColor = $derived($s['ui.bar.text-select.icon']['color']);
 </script>
 
 <div
@@ -144,8 +149,8 @@ TODO:
         <div class="dy-btn-group place-self-center">
             {#if showHightlightPens}
                 <div class="pen-grid grid grid-rows-1 gap-2 my-2">
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
-                    <!-- svelte-ignore a11y-interactive-supports-focus -->
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <!-- svelte-ignore a11y_interactive_supports_focus -->
                     <div
                         class="dy-btn-sm"
                         style:background-color={$themeColors['HighlighterPenYellow']}
@@ -153,8 +158,8 @@ TODO:
                         onclick={() => modifyHighlight(1)}
                         role="button"
                     ></div>
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
-                    <!-- svelte-ignore a11y-interactive-supports-focus -->
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <!-- svelte-ignore a11y_interactive_supports_focus -->
                     <div
                         class="dy-btn-sm"
                         style:background-color={$themeColors['HighlighterPenGreen']}
@@ -162,8 +167,8 @@ TODO:
                         onclick={() => modifyHighlight(2)}
                         role="button"
                     ></div>
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
-                    <!-- svelte-ignore a11y-interactive-supports-focus -->
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <!-- svelte-ignore a11y_interactive_supports_focus -->
                     <div
                         class="dy-btn-sm"
                         style:background-color={$themeColors['HighlighterPenBlue']}
@@ -171,8 +176,8 @@ TODO:
                         onclick={() => modifyHighlight(3)}
                         role="button"
                     ></div>
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
-                    <!-- svelte-ignore a11y-interactive-supports-focus -->
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <!-- svelte-ignore a11y_interactive_supports_focus -->
                     <div
                         class="dy-btn-sm"
                         style:background-color={$themeColors['HighlighterPenOrange']}
@@ -180,8 +185,8 @@ TODO:
                         onclick={() => modifyHighlight(4)}
                         role="button"
                     ></div>
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
-                    <!-- svelte-ignore a11y-interactive-supports-focus -->
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <!-- svelte-ignore a11y_interactive_supports_focus -->
                     <div
                         class="dy-btn-sm"
                         style:background-color={$themeColors['HighlighterPenPink']}
@@ -189,8 +194,8 @@ TODO:
                         onclick={() => modifyHighlight(5)}
                         role="button"
                     ></div>
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
-                    <!-- svelte-ignore a11y-interactive-supports-focus -->
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <!-- svelte-ignore a11y_interactive_supports_focus -->
                     <div
                         class="dy-btn-sm"
                         style:background-color={'white'}

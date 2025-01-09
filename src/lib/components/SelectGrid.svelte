@@ -7,11 +7,15 @@ A component to display menu options in a grid.
     import { convertStyle, refs, s, themeBookColors, themeColors } from '$lib/data/stores';
     import { isNotBlank } from '$lib/scripts/stringUtils';
     import { createEventDispatcher } from 'svelte';
-    export let options: App.GridGroup[] = [];
-    export let cols = 6;
+    interface Props {
+        options?: App.GridGroup[];
+        cols?: number;
+    }
 
-    let hovered = null;
-    $: hoverColor = $themeColors['ButtonSelectedColor'];
+    let { options = [], cols = 6 }: Props = $props();
+
+    let hovered = $state(null);
+    let hoverColor = $derived($themeColors['ButtonSelectedColor']);
 
     // Function to handle span touch
     function handleHover(event) {
@@ -39,22 +43,28 @@ A component to display menu options in a grid.
         }
     }
 
-    $: cellStyle = convertStyle(
-        Object.fromEntries(
-            Object.entries($s['ui.button.book-grid']).filter(([key]) => key != 'background-color')
-        )
-    );
-    $: rowStyle = convertStyle(
-        Object.fromEntries(
-            Object.entries($s['ui.button.chapter-intro']).filter(
-                ([key]) => key != 'background-color'
+    let cellStyle = $derived(
+        convertStyle(
+            Object.fromEntries(
+                Object.entries($s['ui.button.book-grid']).filter(
+                    ([key]) => key != 'background-color'
+                )
             )
         )
     );
-    $: headerStyle = convertStyle($s['ui.text.book-group-title']);
+    let rowStyle = $derived(
+        convertStyle(
+            Object.fromEntries(
+                Object.entries($s['ui.button.chapter-intro']).filter(
+                    ([key]) => key != 'background-color'
+                )
+            )
+        )
+    );
+    let headerStyle = $derived(convertStyle($s['ui.text.book-group-title']));
     const dispatch = createEventDispatcher();
 
-    $: bookCollectionColor = (id: string, category: string) => {
+    let bookCollectionColor = $derived((id: string, category: string) => {
         const section = config.bookCollections
             .find((x) => x.id === $refs.collection)
             .books.find((x) => x.id === id)?.section;
@@ -62,7 +72,7 @@ A component to display menu options in a grid.
             ? $themeBookColors[section]
             : $s[category]['background-color'];
         return color;
-    };
+    });
 
     function handleClick(opt: any) {
         const text = opt.id;
@@ -80,8 +90,8 @@ A component to display menu options in a grid.
             {group.header}
         </div>
     {/if}
-    <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-    <!-- svelte-ignore a11y-interactive-supports-focus -->
+    <!-- svelte-ignore a11y_mouse_events_have_key_events -->
+    <!-- svelte-ignore a11y_interactive_supports_focus -->
     <div
         ontouchstart={handleHover}
         ontouchmove={handleTouchMove}
@@ -95,8 +105,8 @@ A component to display menu options in a grid.
     >
         {#if group.rows}
             {#each group.rows as row}
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <!-- svelte-ignore a11y-interactive-supports-focus -->
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_interactive_supports_focus -->
                 <span
                     onclick={() => handleClick(row)}
                     id={row.id}
@@ -114,8 +124,8 @@ A component to display menu options in a grid.
             {/each}
         {/if}
         {#each group.cells as cell}
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <!-- svelte-ignore a11y-no-static-element-interactions -->
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
             <span
                 onclick={() => handleClick(cell)}
                 id={cell.id}

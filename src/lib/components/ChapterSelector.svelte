@@ -2,7 +2,7 @@
 @component
 The navbar component.
 -->
-<script>
+<script lang="ts">
     import config from '$lib/data/config';
     import { convertStyle, nextRef, refs, s, t, userSettingsOrDefault } from '$lib/data/stores';
     import { DropdownIcon } from '$lib/icons';
@@ -13,21 +13,7 @@ The navbar component.
     import TabsMenu from './TabsMenu.svelte';
 
     /**reference to chapter selector so code can use TabsMenu.setActive*/
-    let chapterSelector;
-
-    // Needs testing, does updating the book correctly effect what chapters or verses are availible in the next tab?
-    $: book = $nextRef.book === '' ? $refs.book : $nextRef.book;
-    $: chapter = $nextRef.chapter === '' ? $refs.chapter : $nextRef.chapter;
-    $: showVerseSelector = $userSettingsOrDefault['verse-selection'];
-    $: verseCount = getVerseCount(book, chapter);
-    $: numeralSystem = numerals.systemForBook(config, $refs.collection, book);
-    $: chaptersLabels =
-        config.bookCollections
-            .find((x) => $refs.collection === x.id)
-            .books.find((x) => book === x.id).chaptersLabels ?? {};
-
-    $: c = $t.Selector_Chapter;
-    $: v = $t.Selector_Verse;
+    let chapterSelector: TabsMenu;
 
     /**
      * Pushes reference changes to refs['next']. Pushes final change to default reference.
@@ -69,7 +55,7 @@ The navbar component.
         close();
     }
 
-    let dropdown;
+    let dropdown: Dropdown;
     function close() {
         dropdown.close();
     }
@@ -158,27 +144,41 @@ The navbar component.
         }
         return value;
     };
-    /**list of books in current docSet*/
-    $: books = $refs.catalog.documents;
-    /**list of chapters in current book*/
-    $: chapters = books.find((d) => d.bookCode === book)?.versesByChapters;
-    $: showSelector =
-        config.mainFeatures['show-chapter-number-on-app-bar'] && getChapterCount($refs.book) > 0;
     const canSelect = config.mainFeatures['show-chapter-selector'];
+    // Needs testing, does updating the book correctly effect what chapters or verses are availible in the next tab?
+    let book = $derived($nextRef.book === '' ? $refs.book : $nextRef.book);
+    let chapter = $derived($nextRef.chapter === '' ? $refs.chapter : $nextRef.chapter);
+    let showVerseSelector = $derived($userSettingsOrDefault['verse-selection']);
+    let verseCount = $derived(getVerseCount(book, chapter));
+    let numeralSystem = $derived(numerals.systemForBook(config, $refs.collection, book));
+    let chaptersLabels = $derived(
+        config.bookCollections
+            .find((x) => $refs.collection === x.id)
+            .books.find((x) => book === x.id).chaptersLabels ?? {}
+    );
+    let c = $derived($t.Selector_Chapter);
+    let v = $derived($t.Selector_Verse);
+    /**list of books in current docSet*/
+    let books = $derived($refs.catalog.documents);
+    /**list of chapters in current book*/
+    let chapters = $derived(books.find((d) => d.bookCode === book)?.versesByChapters);
+    let showSelector = $derived(
+        config.mainFeatures['show-chapter-number-on-app-bar'] && getChapterCount($refs.book) > 0
+    );
 </script>
 
 <!-- Chapter Selector -->
 {#if showSelector && ($nextRef.book === '' || $nextRef.chapter !== '')}
-    <Dropdown bind:this={dropdown} on:nav-end={resetNavigation} cols="5">
-        <svelte:fragment slot="label">
+    <Dropdown bind:this={dropdown} navend={resetNavigation} cols={5}>
+        {#snippet label()}
             <div class="normal-case" style={convertStyle($s['ui.selector.chapter'])}>
                 {chapterIndicator(book, chapter)}
             </div>
             {#if canSelect}
                 <DropdownIcon color="white" />
             {/if}
-        </svelte:fragment>
-        <svelte:fragment slot="content">
+        {/snippet}
+        {#snippet content()}
             {#if canSelect}
                 <div>
                     <TabsMenu
@@ -221,6 +221,6 @@ The navbar component.
                     />
                 </div>
             {/if}
-        </svelte:fragment>
+        {/snippet}
     </Dropdown>
 {/if}

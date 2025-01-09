@@ -8,8 +8,8 @@ Font Selector component.
     import Modal from './Modal.svelte';
 
     const modalId = 'fontSelector';
-    let modal;
-    let fontList;
+    let modal = $state();
+    let fontList = $state();
 
     export function showModal() {
         fontList.selectedFont = $currentFont;
@@ -25,20 +25,20 @@ Font Selector component.
 </script>
 
 <Modal bind:this={modal} id={modalId} useLabel={false}>
-    <svelte:fragment slot="content">
+    {#snippet content()}
         <FontList bind:this={fontList} selectedFont={$currentFont} />
         <div class="flex w-full justify-between dy-modal-action">
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
             <button
                 style={convertStyle($s['ui.dialog.button'])}
                 class="dy-btn dy-btn-sm dy-btn-ghost no-animation">{$t['Button_Cancel']}</button
             >
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
             <button
                 style={convertStyle($s['ui.dialog.button'])}
                 class="dy-btn dy-btn-sm dy-btn-ghost no-animation"
                 onclick={() => handleOk()}>{$t['Button_OK']}</button
             >
         </div>
-    </svelte:fragment>
+    {/snippet}
 </Modal>

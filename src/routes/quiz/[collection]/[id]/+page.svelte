@@ -1,4 +1,6 @@
 <script>
+    import { run } from 'svelte/legacy';
+
     import { beforeNavigate } from '$app/navigation';
     import { base } from '$app/paths';
     import BookSelector from '$lib/components/BookSelector.svelte';
@@ -17,52 +19,28 @@
     import { ArrowForwardIcon, AudioIcon, TextAppearanceIcon } from '$lib/icons';
     import { compareVersions } from '$lib/scripts/stringUtils';
     import { onDestroy } from 'svelte';
-    /** @type {import('./$types').PageData} */
-    export let data;
 
-    $: ({ locked, quiz, quizId, quizName, passScore } = data);
+    /**
+     * @typedef {Object} Props
+     * @property {import('./$types').PageData} data
+     */
 
-    $: book = config.bookCollections
-        .find((x) => x.id === $refs.collection)
-        .books.find((x) => x.id === quizId);
+    /** @type {Props} */
+    let { data } = $props();
 
-    $: displayLabel = quizName || 'Quiz';
-
-    $: if (quiz) {
-        resetQuizState();
-
-        score = 0;
-        questionNum = 0;
-        shuffledAnswers = [];
-        quizQuestions = book.quizFeatures['shuffle-questions']
-            ? shuffleArray([...quiz.questions])
-            : [...quiz.questions];
-        handleQuestionChange();
-        playQuizQuestionAudio();
-        quizSaved = false;
-    } else {
-        stopAudioPlayback();
-
-        score = 0;
-        questionNum = 0;
-        shuffledAnswers = [];
-        quizQuestions = [];
-        quizSaved = false;
-    }
-
-    let textHighlightIndex = -1;
-    let quizSaved = false;
-    let shuffledAnswers = [];
-    let quizQuestions = [];
-    let score = 0;
-    let questionNum = 0;
-    let currentQuizQuestion;
-    let clicked = false;
-    let displayCorrect = false;
+    let textHighlightIndex = $state(-1);
+    let quizSaved = $state(false);
+    let shuffledAnswers = $state([]);
+    let quizQuestions = $state([]);
+    let score = $state(0);
+    let questionNum = $state(0);
+    let currentQuizQuestion = $state();
+    let clicked = $state(false);
+    let displayCorrect = $state(false);
     let currentQuestionAudio = null;
     let currentAnswerAudio = null;
     let currentExplanationAudio = null;
-    let explanation = '';
+    let explanation = $state('');
     let commentaryMessage = '';
 
     const quizAssetFolder = compareVersions(config.programVersion, '12.0') < 0 ? 'assets' : 'quiz';
@@ -296,39 +274,71 @@
     onDestroy(() => {
         stopAudioPlayback();
     });
+    let { locked, quiz, quizId, quizName, passScore } = $derived(data);
+    let book = $derived(
+        config.bookCollections
+            .find((x) => x.id === $refs.collection)
+            .books.find((x) => x.id === quizId)
+    );
+    let displayLabel = $derived(quizName || 'Quiz');
+    run(() => {
+        if (quiz) {
+            resetQuizState();
+
+            score = 0;
+            questionNum = 0;
+            shuffledAnswers = [];
+            quizQuestions = book.quizFeatures['shuffle-questions']
+                ? shuffleArray([...quiz.questions])
+                : [...quiz.questions];
+            handleQuestionChange();
+            playQuizQuestionAudio();
+            quizSaved = false;
+        } else {
+            stopAudioPlayback();
+
+            score = 0;
+            questionNum = 0;
+            shuffledAnswers = [];
+            quizQuestions = [];
+            quizSaved = false;
+        }
+    });
 </script>
 
 <div class="grid grid-rows-[auto,1fr] h-screen" style:font-size="{$bodyFontSize}px">
     <div class="navbar">
         <Navbar>
-            <div slot="left-buttons">
+            {#snippet start()}
                 <BookSelector {displayLabel} />
-            </div>
-            <div slot="right-buttons" class="flex items-center">
-                <div class="flex">
-                    <button
-                        class="dy-btn dy-btn-ghost dy-btn-circle"
-                        onclick={() => {
-                            $quizAudioActive = !$quizAudioActive;
-                        }}
+            {/snippet}
+            {#snippet end()}
+                <div class="flex items-center">
+                    <div class="flex">
+                        <button
+                            class="dy-btn dy-btn-ghost dy-btn-circle"
+                            onclick={() => {
+                                $quizAudioActive = !$quizAudioActive;
+                            }}
+                        >
+                            {#if $quizAudioActive}
+                                <AudioIcon.Volume color="white" />
+                            {:else}
+                                <AudioIcon.Mute color="white" />
+                            {/if}
+                        </button>
+                    </div>
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <!-- svelte-ignore a11y_label_has_associated_control -->
+                    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+                    <label
+                        class="dy-btn dy-btn-ghost p-0.5 dy-no-animation"
+                        onclick={() => modal.open(MODAL_TEXT_APPEARANCE)}
                     >
-                        {#if $quizAudioActive}
-                            <AudioIcon.Volume color="white" />
-                        {:else}
-                            <AudioIcon.Mute color="white" />
-                        {/if}
-                    </button>
+                        <TextAppearanceIcon color="white" />
+                    </label>
                 </div>
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <!-- svelte-ignore a11y-label-has-associated-control -->
-                <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-                <label
-                    class="dy-btn dy-btn-ghost p-0.5 dy-no-animation"
-                    onclick={() => modal.open(MODAL_TEXT_APPEARANCE)}
-                >
-                    <TextAppearanceIcon color="white" />
-                </label>
-            </div>
+            {/snippet}
         </Navbar>
     </div>
 
@@ -375,7 +385,7 @@
                             <div class="quiz-question" style:line-height="{$bodyLineHeight}%">
                                 {currentQuizQuestion.text}
                                 {#if currentQuizQuestion.image}
-                                    <!-- svelte-ignore a11y-missing-attribute -->
+                                    <!-- svelte-ignore a11y_missing_attribute -->
                                     <img
                                         class="quiz-question-image h-40"
                                         src={getImageSource(currentQuizQuestion.image)}
@@ -439,8 +449,8 @@
                                             class:textHighlight={textHighlightIndex ===
                                                 currentIndex}
                                         >
-                                            <!-- svelte-ignore a11y-click-events-have-key-events -->
-                                            <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+                                            <!-- svelte-ignore a11y_click_events_have_key_events -->
+                                            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                                             <img
                                                 class="cursor-pointer"
                                                 src={getImageSource(answer.image)}

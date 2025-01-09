@@ -4,7 +4,7 @@ Plan Stop Modal Dialog component.
 -->
 <svelte:options accessors={true} />
 
-<script>
+<script lang="ts">
     import { goto } from '$app/navigation';
     import { deleteAllProgressItemsForPlan } from '$lib/data/planProgressItems';
     import { addPlanState } from '$lib/data/planStates';
@@ -12,10 +12,9 @@ Plan Stop Modal Dialog component.
     import { getRoute } from '$lib/navigate';
     import Modal from './Modal.svelte';
 
-    export let planId = undefined;
 
     const modalId = 'planStopDialog';
-    let modal;
+    let modal: Modal;
 
     export function showModal() {
         modal.showModal();
@@ -33,17 +32,27 @@ Plan Stop Modal Dialog component.
         });
     }
 
-    export let vertOffset = '1rem'; //Prop that will have the navbar's height (in rem) passed in
+    interface Props {
+        planId?: any;
+        vertOffset?: string; //Prop that will have the navbar's height (in rem) passed in
+    }
+
+    let { planId = undefined, vertOffset = '1rem' }: Props = $props();
     //The positioningCSS positions the modal 1rem below the navbar and 1rem from the right edge of the screen (on mobile it will be centered)
-    $: positioningCSS =
-        'position:absolute; top:' +
+    let positioningCSS =
+        $derived('position:absolute; top:' +
         (Number(vertOffset.replace('rem', '')) + 1) +
-        'rem; inset-inline-end:1rem;';
+        'rem; inset-inline-end:1rem;');
+
+    export {
+    	planId,
+    	vertOffset,
+    }
 </script>
 
 <!--addCSS is a prop for injecting CSS into the modal-->
 <Modal bind:this={modal} id={modalId} useLabel={false}>
-    <svelte:fragment slot="content">
+    {#snippet content()}
         <div id="container" class="message">
             <div class="message-body" id="message-body">
                 <div class="message-header"></div>
@@ -66,5 +75,5 @@ Plan Stop Modal Dialog component.
                 </div>
             </div>
         </div>
-    </svelte:fragment>
+    {/snippet}
 </Modal>

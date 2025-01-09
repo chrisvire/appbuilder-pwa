@@ -4,11 +4,21 @@
     import { SearchIcon } from '$lib/icons';
     import { createEventDispatcher } from 'svelte';
 
-    export let phrase: string;
-    export let wholeWords: boolean;
-    export let matchAccents: boolean;
+    interface Props {
+        phrase: string;
+        wholeWords: boolean;
+        matchAccents: boolean;
+        submit: (e: { phrase: string; wholeWords: boolean; matchAccents: boolean }) => void;
+    }
 
-    let searchbar;
+    let {
+        phrase = $bindable(),
+        wholeWords = $bindable(),
+        matchAccents = $bindable(),
+        submit
+    }: Props = $props();
+
+    let searchbar: HTMLInputElement;
 
     const specialCharacters =
         config.mainFeatures['input-buttons']?.split(' ').filter((c) => c.length) ?? [];
@@ -25,11 +35,11 @@
         );
     }
 
-    let dismissSearchBar = false;
+    let dismissSearchBar = $state(false);
 
     const dispatch = createEventDispatcher();
 
-    function submit(event: Event) {
+    function doSubmit(event: Event) {
         event.preventDefault();
         if (!phrase) return;
         // Dismiss the search bar by disabling it.
@@ -38,7 +48,7 @@
         setTimeout(() => {
             dismissSearchBar = false;
         }, 50);
-        dispatch('submit', { phrase, wholeWords, matchAccents });
+        submit({ phrase, wholeWords, matchAccents });
     }
 </script>
 
@@ -62,7 +72,7 @@
                 bind:value={phrase}
             />
             <button
-                onclick={submit}
+                onclick={doSubmit}
                 class="dy-btn mx-2 flex-none bg-gray-200"
                 style={convertStyle($s['ui.search.button'])}
                 style:border-color={$themeColors.DividerColor}

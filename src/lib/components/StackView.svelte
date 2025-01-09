@@ -3,17 +3,17 @@
   Daisy UI Stack View component
 -->
 
-<script>
+<script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import config from '$lib/data/config';
     import { footnotes, refs, themeColors } from '$lib/data/stores';
     import { handleHeaderLinkPressed } from '$lib/scripts/scripture-reference-utils';
     import { splitString } from '$lib/scripts/stringUtils';
-    export let bodyFontSize;
-    export let bodyLineHeight;
-    export let font;
-    let stack;
+    let { bodyFontSize, bodyLineHeight, font } = $props();
+    let stack = $state();
     let listening = false;
-    $: PrimaryColor = $themeColors['PrimaryColor'];
+    let PrimaryColor = $derived($themeColors['PrimaryColor']);
 
     function clickOutside(event) {
         if (!stack.contains(event.target)) {
@@ -89,11 +89,13 @@
             listening = true;
         }
     }
-    $: toggleListener($footnotes);
+    run(() => {
+        toggleListener($footnotes);
+    });
 
-    $: fontSize = bodyFontSize + 'px';
+    let fontSize = $derived(bodyFontSize + 'px');
 
-    $: lineHeight = bodyLineHeight + '%';
+    let lineHeight = $derived(bodyLineHeight + '%');
 </script>
 
 <!--
@@ -102,8 +104,8 @@
 -->
 <div bind:this={stack} class="absolute max-w-screen-md w-5/6 bottom-8 dy-stack">
     {#each $footnotes as item}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
             id="container"
             class="footnote rounded h-40 drop-shadow-lg overflow-y-auto"

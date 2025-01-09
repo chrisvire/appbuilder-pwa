@@ -9,20 +9,38 @@ TODO:
     import config from '$lib/data/config';
     import { direction, refs } from '$lib/data/stores';
     import CardMenu from './CardMenu.svelte';
-    export let docSet = '';
-    export let collection = '';
-    export let book = '';
-    export let chapter = '';
-    export let verse = '';
-    export let reference = '';
-    export let text = '';
-    export let date = '';
-    export let actions = [''];
-    export let src = '';
-    export let alt = '';
+    interface Props {
+        docSet?: string;
+        collection?: string;
+        book?: string;
+        chapter?: string;
+        verse?: string;
+        reference?: string;
+        text?: string;
+        date?: string;
+        actions?: any;
+        src?: string;
+        alt?: string;
+        icon?: import('svelte').Snippet;
+    }
+
+    let {
+        docSet = '',
+        collection = '',
+        book = '',
+        chapter = '',
+        verse = '',
+        reference = '',
+        text = '',
+        date = '',
+        actions = [''],
+        src = '',
+        alt = '',
+        icon
+    }: Props = $props();
     const bc = config.bookCollections.find((x) => x.id === collection);
     const textDirection = bc.style.textDirection;
-    $: justifyEnd = textDirection.toLowerCase() === 'rtl' && $direction === 'ltr';
+    let justifyEnd = $derived(textDirection.toLowerCase() === 'rtl' && $direction === 'ltr');
 </script>
 
 <div class="annotation-item-block dy-card">
@@ -31,7 +49,7 @@ TODO:
             {#if src !== '' && alt !== ''}
                 <span><img {src} {alt} /></span>
             {:else}
-                <slot name="icon" />
+                {@render icon?.()}
             {/if}
         </div>
         <div

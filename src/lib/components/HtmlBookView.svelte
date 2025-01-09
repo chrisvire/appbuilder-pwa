@@ -3,21 +3,22 @@
 Display an HTML Book.
 -->
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import { base } from '$app/paths';
     import config from '$lib/data/config';
 
-    export let references: any;
-    export let bodyLineHeight: any;
-    export let bodyFontSize: any;
-    export let fetch: any;
+    interface Props {
+        references: any;
+        bodyLineHeight: any;
+        bodyFontSize: any;
+        fetch: any;
+    }
 
-    $: fontSize = bodyFontSize + 'px';
-    $: lineHeight = bodyLineHeight + '%';
+    let { references, bodyLineHeight, bodyFontSize, fetch }: Props = $props();
 
-    let htmlHead: string;
-    let htmlBody: string;
-
-    $: loadHtml(references.collection, references.book);
+    let htmlHead: string = $state();
+    let htmlBody: string = $state();
 
     async function loadHtml(collectionId: string, bookId: string) {
         console.log(`loadHtml: ${collectionId}, ${bookId}`);
@@ -37,6 +38,11 @@ Display an HTML Book.
             }
         }
     }
+    let fontSize = $derived(bodyFontSize + 'px');
+    let lineHeight = $derived(bodyLineHeight + '%');
+    run(() => {
+        loadHtml(references.collection, references.book);
+    });
 </script>
 
 <svelte:head>

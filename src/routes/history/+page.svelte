@@ -5,9 +5,9 @@
     import { clearHistory } from '$lib/data/history';
     import DeleteSweepIcon from '$lib/icons/DeleteSweepIcon.svelte';
 
-    // Use "export let data" instead of $page so that local data can
-    // be cleared during onClearHistory.
-    export let data;
+    // Use "export let data" instead of page so that local data can be cleared during onClearHistory.
+
+    let { data } = $props();
     async function onClearHistory() {
         await clearHistory();
         data.history = [];
@@ -17,17 +17,16 @@
 <div class="grid grid-rows-[auto,1fr]" style="height:100vh;height:100dvh;">
     <div class="navbar">
         <Navbar>
-            <!-- Button to close the drawer/sidebar -->
-            <!-- <div slot="left-buttons" /> -->
-            <label for="sidebar" slot="center">
-                <div class="btn btn-ghost normal-case text-xl">{$t['Menu_History']}</div>
-            </label>
-            <div slot="right-buttons">
+            {#snippet center()}
+                <label for="sidebar">
+                    <div class="btn btn-ghost normal-case text-xl">{$t['Menu_History']}</div>
+                </label>
+            {/snippet}
+            {#snippet end()}
                 <button class="dy-btn dy-btn-ghost dy-btn-circle" onclick={onClearHistory}>
                     <DeleteSweepIcon color="white" />
                 </button>
-            </div>
-            <!-- <div slot="right-buttons" /> -->
+            {/snippet}
         </Navbar>
     </div>
 

@@ -1,17 +1,17 @@
 <script lang="ts">
+    import { goto } from '$app/navigation';
+    import { page } from '$app/state';
     import IconCard from '$lib/components/IconCard.svelte';
+    import Navbar from '$lib/components/Navbar.svelte';
     import SortMenu from '$lib/components/SortMenu.svelte';
+    import { shareAnnotation, shareAnnotations } from '$lib/data/annotation-share';
+    import { SORT_DATE, SORT_REFERENCE, toSorted } from '$lib/data/annotation-sort';
+    import { removeNote, type NoteItem } from '$lib/data/notes';
+    import { bodyFontSize, modal, MODAL_NOTE, monoIconColor, refs, t } from '$lib/data/stores';
     import { NoteIcon } from '$lib/icons';
     import ShareIcon from '$lib/icons/ShareIcon.svelte';
-    import Navbar from '$lib/components/Navbar.svelte';
-    import { t, monoIconColor, refs, modal, MODAL_NOTE, bodyFontSize } from '$lib/data/stores';
-    import { formatDate } from '$lib/scripts/dateUtils';
-    import { removeNote, type NoteItem } from '$lib/data/notes';
-    import { SORT_DATE, SORT_REFERENCE, toSorted } from '$lib/data/annotation-sort';
-    import { page } from '$app/stores';
-    import { goto } from '$app/navigation';
-    import { shareAnnotation, shareAnnotations } from '$lib/data/annotation-share';
     import { getRoute } from '$lib/navigate';
+    import { formatDate } from '$lib/scripts/dateUtils';
 
     async function handleMenuaction(event: CustomEvent, note: NoteItem) {
         switch (event.detail.text) {
@@ -46,29 +46,29 @@
         actions: [$t['Annotation_Sort_Order_Reference'], $t['Annotation_Sort_Order_Date']]
     };
 
-    let sortOrder = SORT_DATE;
+    let sortOrder = $state(SORT_DATE);
 </script>
 
 <div class="grid grid-rows-[auto,1fr]" style="height:100vh;height:100dvh;">
     <div class="navbar">
         <Navbar>
-            <!-- <div slot="left-buttons" /> -->
-            <label for="sidebar" slot="center">
-                <div class="btn btn-ghost normal-case text-xl">{$t['Annotation_Notes']}</div>
-            </label>
+            {#snippet center()}
+                <label for="sidebar">
+                    <div class="btn btn-ghost normal-case text-xl">{$t['Annotation_Notes']}</div>
+                </label>
+            {/snippet}
 
-            <!-- svelte-ignore a11y-label-has-associated-control -->
-            <div slot="right-buttons">
+            <!-- svelte-ignore a11y_label_has_associated_control -->
+            {#snippet end()}
                 <button
                     class="dy-btn dy-btn-ghost dy-btn-circle"
                     onclick={async () =>
-                        await shareAnnotations(toSorted($page.data.notes, sortOrder))}
+                        await shareAnnotations(toSorted(page.data.notes, sortOrder))}
                 >
                     <ShareIcon color="white" />
                 </button>
                 <SortMenu on:menuaction={(e) => handleSortAction(e)} {...sortMenu} />
-            </div>
-            <!-- <div slot="right-buttons" /> -->
+            {/snippet}
         </Navbar>
     </div>
 
@@ -76,11 +76,11 @@
         class="overflow-y-auto p-2.5 max-w-screen-md mx-auto w-full"
         style:font-size="{$bodyFontSize}px"
     >
-        {#if $page.data.notes.length === 0}
+        {#if page.data.notes.length === 0}
             <div class="annotation-message-none">{$t['Annotation_Notes_None']}</div>
             <div class="annotation-message-none-info">{$t['Annotation_Notes_None_Info']}</div>
         {:else}
-            {#each toSorted($page.data.notes, sortOrder) as n}
+            {#each toSorted(page.data.notes, sortOrder) as n}
                 {@const iconCard = {
                     docSet: n.docSet,
                     collection: n.collection,
@@ -98,7 +98,9 @@
                     ]
                 }}
                 <IconCard on:menuaction={(e) => handleMenuaction(e, n)} {...iconCard}>
-                    <NoteIcon slot="icon" color={$monoIconColor} />
+                    {#snippet icon()}
+                        <NoteIcon color={$monoIconColor} />
+                    {/snippet}
                 </IconCard>
             {/each}
         {/if}

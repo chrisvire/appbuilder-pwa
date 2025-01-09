@@ -8,15 +8,29 @@ TODO:
     import { base } from '$app/paths';
     import { refs } from '$lib/data/stores';
     import CardMenu from './CardMenu.svelte';
-    export let docSet = '';
-    export let book = '';
-    export let chapter = '';
-    export let reference = '';
-    export let text = '';
-    export let date = '';
-    export let verse = '';
-    export let actions = [''];
-    export let penColor = 1;
+    interface Props {
+        docSet?: string;
+        book?: string;
+        chapter?: string;
+        reference?: string;
+        text?: string;
+        date?: string;
+        verse?: string;
+        actions?: any;
+        penColor?: number;
+    }
+
+    let {
+        docSet = '',
+        book = '',
+        chapter = '',
+        reference = '',
+        text = '',
+        date = '',
+        verse = '',
+        actions = [''],
+        penColor = 1
+    }: Props = $props();
 </script>
 
 <div class="annotation-item-block dy-card">

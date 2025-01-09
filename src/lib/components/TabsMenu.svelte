@@ -2,16 +2,25 @@
 @component
 A component to display tabbed menus.
 -->
-<svelte:options accessors={true} />
+<svelte:options ={true} />
 
 <script lang="ts">
     import { convertStyle, s } from '$lib/data/stores';
     import { createEventDispatcher } from 'svelte';
 
-    export let options: App.TabMenuOptions = { '': { component: '', props: {}, visible: true } };
-    export let active = Object.keys(options).filter((x) => options[x].visible)[0];
-    export let scroll = true;
-    export let height = '50vh';
+    interface Props {
+        options?: App.TabMenuOptions;
+        active?: any;
+        scroll?: boolean;
+        height?: string;
+    }
+
+    let {
+        options = { '': { component: '', props: {}, visible: true } },
+        active = $bindable(Object.keys(options).filter((x) => options[x].visible)[0]),
+        scroll = true,
+        height = '50vh'
+    }: Props = $props();
 
     const dispatch = createEventDispatcher();
     const hasTabs = Object.keys(options).filter((x) => options[x].visible).length > 1;
@@ -28,15 +37,24 @@ A component to display tabbed menus.
         if (!Object.hasOwn(options, tab)) return;
         active = tab;
     };
+
+    const SvelteComponent_1 = $derived(options[active].component);
+
+    export {
+    	options,
+    	active,
+    	scroll,
+    	height,
+    }
 </script>
 
 {#if hasTabs}
     <div class="dy-tabs mb-1" style={convertStyle($s['ui.selector.tabs'])}>
         {#each Object.keys(options) as opt}
             {#if options[opt].visible}
-                <!-- svelte-ignore a11y-missing-attribute -->
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <!-- svelte-ignore a11y-interactive-supports-focus -->
+                <!-- svelte-ignore a11y_missing_attribute -->
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_interactive_supports_focus -->
                 <a
                     onclick={() => setActive(opt)}
                     style:border-color={active === opt ? '#FFFFFF' : ''}
@@ -47,8 +65,8 @@ A component to display tabbed menus.
                     role="button"
                 >
                     {#if options[opt].tab}
-                        <svelte:component
-                            this={options[opt].tab?.component}
+                        {@const SvelteComponent = options[opt].tab?.component}
+                        <SvelteComponent
                             {...options[opt].tab?.props}
                         />
                     {:else}
@@ -65,9 +83,8 @@ A component to display tabbed menus.
     style:overflow-y={scroll ? 'auto' : ''}
     style:max-height={height}
 >
-    <svelte:component
-        this={options[active].component}
-        on:menuaction={handleMenuaction}
+    <SvelteComponent_1
+        collectionMenuAction={handleMenuaction}
         {...options[active].props}
     />
 </div>

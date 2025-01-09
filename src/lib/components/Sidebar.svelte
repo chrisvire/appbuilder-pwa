@@ -2,7 +2,7 @@
 @component
 The sidebar/drawer.
 -->
-<script>
+<script lang="ts">
     import { goto } from '$app/navigation';
     import { base } from '$app/paths';
     import config from '$lib/data/config';
@@ -38,9 +38,14 @@ The sidebar/drawer.
         TextAppearanceIcon
     } from '$lib/icons';
     import { getRoute } from '$lib/navigate';
+    interface Props {
+        children?: import('svelte').Snippet;
+    }
+
+    let { children }: Props = $props();
 
     const drawerId = 'sidebar';
-    let menuToggle = false;
+    let menuToggle = $state(false);
 
     function closeDrawer() {
         menuToggle = false;
@@ -90,10 +95,12 @@ The sidebar/drawer.
         goto(getRoute(route));
     }
 
-    $: textColor = $s['ui.drawer.item.text']['color'];
-    $: iconColor = $s['ui.drawer.item.icon']?.['color'] || $themeColors['DrawItemIconColor'];
-    $: contentBackgroundColor = $s['ui.background']['background-color'];
-    $: drawerBackgroundColor = $s['ui.drawer']['background-color'];
+    let textColor = $derived($s['ui.drawer.item.text']['color']);
+    let iconColor = $derived(
+        $s['ui.drawer.item.icon']?.['color'] || $themeColors['DrawItemIconColor']
+    );
+    let contentBackgroundColor = $derived($s['ui.background']['background-color']);
+    let drawerBackgroundColor = $derived($s['ui.drawer']['background-color']);
 </script>
 
 <svelte:window onkeydown={closeOnEscape} />
@@ -102,9 +109,9 @@ The sidebar/drawer.
     <input id={drawerId} type="checkbox" class="dy-drawer-toggle" bind:checked={menuToggle} />
     <div class="dy-drawer-content flex flex-col" style:background-color={contentBackgroundColor}>
         <!-- Page content here -->
-        <slot />
+        {@render children?.()}
     </div>
-    <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div class="dy-drawer-side" onclick={closeDrawer} onkeydown={closeDrawer} role="navigation">
         <div class="dy-drawer-overlay"></div>
         <ul
@@ -158,7 +165,7 @@ The sidebar/drawer.
             {/if}
             {#if showLayouts}
                 <li>
-                    <!-- svelte-ignore a11y-missing-attribute -->
+                    <!-- svelte-ignore a11y_missing_attribute -->
                     <button
                         style:color={textColor}
                         class="btn"
@@ -240,7 +247,7 @@ The sidebar/drawer.
                     </button>
                 </li>
             {/if}
-            <!-- svelte-ignore a11y-missing-attribute -->
+            <!-- svelte-ignore a11y_missing_attribute -->
             <li>
                 <button
                     style:color={textColor}

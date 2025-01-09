@@ -62,6 +62,10 @@ declare namespace App {
         cells?: GridEntry[];
     }
 
+    interface CollectionListMenuAction {
+        collection: CollectionEntry;
+    }
+
     interface CollectionEntry {
         id: string;
         name: string;

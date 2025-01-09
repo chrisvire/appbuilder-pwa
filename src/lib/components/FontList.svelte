@@ -2,15 +2,15 @@
 @component
 Font list component.
 -->
-<svelte:options accessors />
+<svelte:options />
 
-<script>
+<script lang="ts">
     import config from '$lib/data/config';
     import { fontChoices, monoIconColor, themeColors } from '$lib/data/stores';
     import { createEventDispatcher } from 'svelte';
 
     const dispatch = createEventDispatcher();
-    export let selectedFont;
+    let { selectedFont = $bindable() } = $props();
 
     function handleClick(font) {
         selectedFont = font;
@@ -18,14 +18,16 @@ Font list component.
             font: font
         });
     }
+
+    export { selectedFont };
 </script>
 
 <ul class="dy-menu">
     {#each $fontChoices as font}
-        <!-- svelte-ignore a11y-missing-attribute -->
+        <!-- svelte-ignore a11y_missing_attribute -->
         <li style:font-family={font} style:font-size="large">
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <!-- svelte-ignore a11y-interactive-supports-focus -->
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <!-- svelte-ignore a11y_interactive_supports_focus -->
             <a
                 onclick={() => handleClick(font)}
                 style:background-color={font === selectedFont

@@ -3,9 +3,14 @@
     // Filled = 1
     // Weight = 400
     // Grade = 0
-    // Optical size = 24px
-    export let color = 'black';
-    export let style = '';
+
+    interface Props {
+        // Optical size = 24px
+        color?: string;
+        style?: string;
+    }
+
+    let { color = 'black', style = '' }: Props = $props();
 </script>
 
 <svg

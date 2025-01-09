@@ -1,7 +1,12 @@
 <script lang="ts">
     // From app-builders/source/common/app-android-common/src/main/res/drawable-xxxhdpi/ic_format_line_spacing_black_24.png
-    // Converted with https://vectorizer.ai/
-    export let color = 'black';
+
+    interface Props {
+        // Converted with https://vectorizer.ai/
+        color?: string;
+    }
+
+    let { color = 'black' }: Props = $props();
 </script>
 
 <svg

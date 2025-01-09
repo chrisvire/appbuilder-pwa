@@ -1,7 +1,7 @@
 <!--
 @component
 -->
-<script>
+<script lang="ts">
     import { goto } from '$app/navigation';
     import { base } from '$app/paths';
     import config from '$lib/data/config';
@@ -9,13 +9,13 @@
     import { language, languageDefault, refs, s, theme } from '$lib/data/stores';
     import { getRoute } from '$lib/navigate';
 
-    export let barType = undefined;
+    let { barType = undefined } = $props();
 
     const bottomNavBarItems = config?.bottomNavBarItems;
 
-    $: barBackgroundColor = $s['ui.bottom-navigation.']['background-color'];
-    $: barTextColor = $s['ui.bottom-navigation.item.text']['color'];
-    $: barTextSelectedColor = $s['ui.bottom-navigation.item.text.selected']['color'];
+    let barBackgroundColor = $derived($s['ui.bottom-navigation.']['background-color']);
+    let barTextColor = $derived($s['ui.bottom-navigation.item.text']['color']);
+    let barTextSelectedColor = $derived($s['ui.bottom-navigation.item.text.selected']['color']);
 
     const showContents = contents.screens?.length > 0;
     const showSearch = config.mainFeatures['search'];

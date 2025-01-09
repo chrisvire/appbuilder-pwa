@@ -3,11 +3,16 @@
     // Filled = 0
     // Weight = 400
     // Grade = 0
-    // Optical size = 24px
-    export let color = 'black';
-    export let size = 24;
-    // degree of rotation
-    export let deg = 0;
+
+    interface Props {
+        // Optical size = 24px
+        color?: string;
+        size?: number;
+        // degree of rotation
+        deg?: number;
+    }
+
+    let { color = 'black', size = 24, deg = 0 }: Props = $props();
 </script>
 
 <svg fill={color} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"

@@ -79,10 +79,9 @@ TODO:
         }
         lastPlayMode = value.mode;
     }
-    $: playModeChanged($playMode);
 
-    let hintText = '';
-    let showHint = false;
+    let hintText = $state('');
+    let showHint = $state(false);
     let hintTimeoutId = null;
     function startShowHint(text) {
         showHint = true;
@@ -99,15 +98,24 @@ TODO:
     const showSpeed = config.mainFeatures['settings-audio-speed'];
     const showRepeatMode = config.mainFeatures['audio-repeat-mode-button'];
     const playIconSize = config.mainFeatures['audio-play-button-size'] === 'normal' ? '24' : '48';
-    const playIcon = playIconOptons[config.mainFeatures['audio-play-button-style']];
+    const PlayIcon = playIconOptons[config.mainFeatures['audio-play-button-style']];
     const hintStyle = convertStyle($s['ui.bar.audio.hint.text']);
     //$: durationDisplay = format($audioPlayer.duration);
-    $: iconColor = $s['ui.bar.audio.icon']['color'];
-    $: iconPlayColor = $s['ui.bar.audio.play.icon']['color'];
-    $: backgroundColor = $s['ui.bar.audio']['background-color'];
-    $: audioBarClass = $refs.hasAudio?.timingFile ? 'audio-bar' : 'audio-bar-progress';
-    $: mayResetPlayMode($refs.hasAudio?.timing);
-    $: updatePlaybackSpeed($userSettings['audio-speed']);
+    let iconColor = $derived($s['ui.bar.audio.icon']['color']);
+    let iconPlayColor = $derived($s['ui.bar.audio.play.icon']['color']);
+    let backgroundColor = $derived($s['ui.bar.audio']['background-color']);
+    let audioBarClass = $derived($refs.hasAudio?.timingFile ? 'audio-bar' : 'audio-bar-progress');
+    let PlayModeIcon = $derived(playModeIconOptions[$playMode.mode]);
+
+    $effect(() => {
+        playModeChanged($playMode);
+    });
+    $effect(() => {
+        mayResetPlayMode($refs.hasAudio?.timing);
+    });
+    $effect(() => {
+        updatePlaybackSpeed($userSettings['audio-speed']);
+    });
 </script>
 
 <div class="relative {audioBarClass}" style:background-color={backgroundColor}>
@@ -124,7 +132,7 @@ TODO:
             class="audio-control-buttons"
             onclick={() => playMode.next($refs.hasAudio?.timingFile)}
         >
-            <svelte:component this={playModeIconOptions[$playMode.mode]} color={iconColor} />
+            <PlayModeIcon color={iconColor} />
         </button>
     {/if}
     <!-- Play Controls -->
@@ -140,7 +148,7 @@ TODO:
         {/if}
         <button class="audio-control-buttons" onclick={() => playPause()}>
             {#if !$audioPlayer.playing}
-                <svelte:component this={playIcon} color={iconPlayColor} size={playIconSize} />
+                <PlayIcon color={iconPlayColor} size={playIconSize} />
             {:else}
                 <AudioIcon.Pause color={iconColor} size={playIconSize} />
             {/if}
@@ -165,8 +173,8 @@ TODO:
             {format($audioPlayer.progress)}
         </div>
         {#if $audioPlayer.loaded}
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <progress
                 id="progress-bar"
                 class="dy-progress audio-progress"

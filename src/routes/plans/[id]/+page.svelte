@@ -1,33 +1,32 @@
 <script>
-    import { page } from '$app/stores';
+    import { goto } from '$app/navigation';
+    import { base } from '$app/paths';
+    import { page } from '$app/state';
     import Navbar from '$lib/components/Navbar.svelte';
-
+    import config from '$lib/data/config';
+    import { getFirstIncompleteDay, getNextPlanReference } from '$lib/data/planProgressItems';
+    import { getLastPlanStateRecord } from '$lib/data/planStates';
     import {
-        language,
-        s,
-        t,
         convertStyle,
+        language,
+        modal,
+        MODAL_STOP_PLAN,
         plan,
         refs,
-        modal,
-        MODAL_STOP_PLAN
+        s,
+        t
     } from '$lib/data/stores';
-    import { getLastPlanStateRecord } from '$lib/data/planStates';
-    import { getNextPlanReference, getFirstIncompleteDay } from '$lib/data/planProgressItems';
-    import { getDisplayString } from '$lib/scripts/scripture-reference-utils';
-    import { getReferenceFromString } from '$lib/scripts/scripture-reference-utils-common';
-    import { base } from '$app/paths';
-    import { goto } from '$app/navigation';
-    import config from '$lib/data/config';
-    import { compareVersions } from '$lib/scripts/stringUtils';
     import {
         CalendarMonthIcon,
-        CheckboxOutlineIcon,
-        SettingsIcon,
         CheckboxIcon,
-        InfoIcon
+        CheckboxOutlineIcon,
+        InfoIcon,
+        SettingsIcon
     } from '$lib/icons';
     import { getRoute } from '$lib/navigate';
+    import { getDisplayString } from '$lib/scripts/scripture-reference-utils';
+    import { getReferenceFromString } from '$lib/scripts/scripture-reference-utils-common';
+    import { compareVersions } from '$lib/scripts/stringUtils';
     const imageFolder =
         compareVersions(config.programVersion, '12.0') < 0 ? 'illustrations' : 'plans';
 
@@ -35,16 +34,16 @@
     //need some way to know the status of the plan
     //for now assume it's from choose plans
 
-    let selectedTab = 'info';
-    let inUse = false;
+    let selectedTab = $state('info');
+    let inUse = $state(false);
     //could be info or calendar for a plan thats not in use, if the plan is in use, there is a settings tab
     checkPlanState();
-    let selectedDay = $page.data.planData.items[0];
-    let planId = $page.data.planData.id;
-    let currentPlanStatus = '';
+    let selectedDay = $state(page.data.planData.items[0]);
+    let planId = page.data.planData.id;
+    let currentPlanStatus = $state('');
     let currentStatusDateString = '';
     async function checkPlanState() {
-        const planStateRecord = await getLastPlanStateRecord($page.data.planData.id);
+        const planStateRecord = await getLastPlanStateRecord(page.data.planData.id);
         if (planStateRecord) {
             const planState = planStateRecord.state;
             currentPlanStatus = planState;
@@ -57,15 +56,15 @@
             if (planState && planState === 'started') {
                 selectedTab = 'calendar';
                 inUse = true;
-                const firstIncompletePlanDay = await getFirstIncompleteDay($page.data.planData, -1);
+                const firstIncompletePlanDay = await getFirstIncompleteDay(page.data.planData, -1);
                 if (firstIncompletePlanDay !== -1) {
                     // -1 means the plan is complete, which really shouldn't show up here
-                    const dayIndex = $page.data.planData.items.findIndex(
+                    const dayIndex = page.data.planData.items.findIndex(
                         (item) => item.day === firstIncompletePlanDay
                     );
                     // Should always be found but
                     if (dayIndex != -1) {
-                        selectedDay = $page.data.planData.items[dayIndex];
+                        selectedDay = page.data.planData.items[dayIndex];
                     }
                 }
             }
@@ -74,7 +73,7 @@
     function referenceCompleted(day, refIndex) {
         let completed = false;
         // While there should only be 0 or one match, this will get any present
-        const matchingEntries = $page.data.planCompletionData.filter(
+        const matchingEntries = page.data.planCompletionData.filter(
             (item) => item.day === day && item.itemIndex === refIndex
         );
         if (matchingEntries.length > 0) {
@@ -116,10 +115,10 @@
             const [fromVerse, toVerse, separator] = verseRanges[0];
             if (checkReference(book, toChapter)) {
                 let destinationVerse = fromVerse === -1 ? 1 : fromVerse;
-                getNextPlanReference($page.data.planData.id, item, index).then(
+                getNextPlanReference(page.data.planData.id, item, index).then(
                     ([nextReference, nextIndex]) => {
                         $plan = {
-                            planId: $page.data.planData.id,
+                            planId: page.data.planData.id,
                             planDay: item.day,
                             planEntry: index,
                             planBookId: book,
@@ -143,8 +142,7 @@
             }
         }
     }
-    function handleBackNavigation(event) {
-        event.preventDefault();
+    function backNavigation() {
         goto(getRoute(`/plans`));
     }
 
@@ -185,40 +183,39 @@
 
 <div class="grid grid-rows-[auto,1fr]" style="height:100vh;height:100dvh;">
     <div class="navbar">
-        <Navbar onbackNavigation={handleBackNavigation}>
-            <!-- <div slot="left-buttons" /> -->
-            <label for="sidebar" slot="center">
-                <div class="btn btn-ghost normal-case text-xl">
-                    <!--back navigation isn't quite right-->
-                    {$page.data.planConfig.title[$language] ??
-                        $page.data.planConfig.title.default ??
-                        ''}
-                </div>
-            </label>
-            <!-- <div slot="right-buttons" class="flex items-center"> -->
+        <Navbar {backNavigation}>
+            {#snippet center()}
+                <label for="sidebar">
+                    <div class="btn btn-ghost normal-case text-xl">
+                        <!--back navigation isn't quite right-->
+                        {page.data.planConfig.title[$language] ??
+                            page.data.planConfig.title.default ??
+                            ''}
+                    </div>
+                </label>
+            {/snippet}
         </Navbar>
     </div>
 
     <div class="overflow-y-auto mx-auto md:max-w-screen-md w-full">
-        {#if $page.data.planConfig.image}
+        {#if page.data.planConfig.image}
             <div>
                 <img
                     class="plan-image"
-                    src="{base}/{imageFolder}/{$page.data.planConfig.image.file}"
-                    alt={$page.data.planConfig.image.file}
-                    width={$page.data.planConfig.image.width}
-                    height={$page.data.planConfig.image.height}
+                    src="{base}/{imageFolder}/{page.data.planConfig.image.file}"
+                    alt={page.data.planConfig.image.file}
+                    width={page.data.planConfig.image.width}
+                    height={page.data.planConfig.image.height}
                 />
             </div>
         {/if}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
         <div
             role="tablist"
             class="dy-tabs dy-tabs-bordered"
             style={convertStyle($s['ui.plans.tabs'])}
         >
-            <!-- svelte-ignore a11y-no-static-element-interactions -->
-
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
                 name="my_tabs_1"
                 class="dy-tab dy-tab-bordered {selectedTab === 'info' ? 'dy-tab-active' : ''}"
@@ -230,7 +227,7 @@
                 ></InfoIcon>
             </div>
 
-            <!-- svelte-ignore a11y-no-static-element-interactions -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
                 name="my_tabs_1"
                 class="dy-tab {selectedTab === 'calendar' ? 'dy-tab-active' : ''}"
@@ -242,7 +239,7 @@
                     style={convertStyle($s['ui.plans.tabs.icon'])}
                 ></CalendarMonthIcon>
             </div>
-            <!-- svelte-ignore a11y-no-static-element-interactions -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
             {#if inUse === true}
                 <div
                     name="my_tabs_1"
@@ -262,16 +259,16 @@
             {#if selectedTab === 'info'}
                 <div id="plan-page" class="plan-details">
                     <div class="plan-title">
-                        {$page.data.planData.title[$language] ??
-                            $page.data.planData.title.default ??
+                        {page.data.planData.title[$language] ??
+                            page.data.planData.title.default ??
                             ''}
                     </div>
                     <div class="plan-days">
-                        {$t['Plans_Number_Days'].replace('%d', $page.data.planConfig.days)}
+                        {$t['Plans_Number_Days'].replace('%d', page.data.planConfig.days)}
                     </div>
                     <div class="plan-description">
-                        {$page.data.planData.description[$language] ??
-                            $page.data.planData.description.default ??
+                        {page.data.planData.description[$language] ??
+                            page.data.planData.description.default ??
                             ''}
                     </div>
                     {#if currentPlanStatus === 'started' || currentPlanStatus === 'completed'}
@@ -289,13 +286,13 @@
                         </div>
                     {:else}
                         <div class="plan-button-block">
-                            <!-- svelte-ignore a11y-click-events-have-key-events -->
-                            <!-- svelte-ignore a11y-no-static-element-interactions -->
+                            <!-- svelte-ignore a11y_click_events_have_key_events -->
+                            <!-- svelte-ignore a11y_no_static_element_interactions -->
                             <div
                                 class="plan-button"
                                 id="PLAN-start"
                                 onclick={() =>
-                                    goto(getRoute(`/plans/${$page.data.planData.id}/settings`))}
+                                    goto(getRoute(`/plans/${page.data.planData.id}/settings`))}
                             >
                                 {$t['Plans_Button_Start_Plan']}
                             </div>
@@ -304,7 +301,7 @@
                 </div>
             {/if}
             {#if selectedTab === 'calendar'}
-                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
                 <div
                     class="plan-days-scroller"
                     id="scroller"
@@ -314,11 +311,11 @@
                     onmouseleave={handleMouseUp}
                 >
                     <ul class="dy-menu-horizontal bg-base-200 rounded-box">
-                        {#each $page.data.planData.items as item}
+                        {#each page.data.planData.items as item}
                             <!-- plan-day-box selected plan-day-box-selected plan-day-box-uncompleted or
                          plan-day-box plan-day-box-unselected plan-day-box-uncompleted -->
-                            <!-- svelte-ignore a11y-click-events-have-key-events -->
-                            <!-- svelte-ignore a11y-no-static-element-interactions -->
+                            <!-- svelte-ignore a11y_click_events_have_key_events -->
+                            <!-- svelte-ignore a11y_no_static_element_interactions -->
                             <!-- the class plan-day-box in particular does not seem to work-->
                             <li>
                                 <div
@@ -371,8 +368,8 @@
                     <div class="plan-config-info">
                         {$t['Plans_Config_Stop_Plan_info']}
                     </div>
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
-                    <!-- svelte-ignore a11y-no-static-element-interactions -->
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <!-- svelte-ignore a11y_no_static_element_interactions -->
                     <div
                         class="plan-button plan-config-button"
                         id="PLAN-stop"
