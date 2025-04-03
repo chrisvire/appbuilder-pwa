@@ -45,6 +45,15 @@ function replaceVideoTags(text: string, _bcId: string, _bookId: string): string 
 function replacePageTags(text: string, _bcId: string, _bookId: string): string {
     return text.replace(/\\page (.*)/g, '\\zpage-s |id="$1"\\*\\zpage-e\\*');
 }
+
+function replaceParagraphTags(text: string, _bcId: string, _bookId: string): string {
+    return text.replace(/\\p_([^ ]*)/g, '\\p\\zp-s |class="p_$1"\\*\\zp-e\\*');
+}
+
+function replaceBreakTags(text: string, _bcId: string, _bookId: string): string {
+    return text.replace(/\\zbr/g, '\\zbr-s\\*\\zbr-e\\*');
+}
+
 function loadGlossary(collection: any, dataDir: string): string[] {
     const glossary: string[] = [];
     for (const book of collection.books) {
@@ -239,6 +248,8 @@ const usfmFilterFunctions: FilterFunction[] = [
     removeStrongNumberReferences,
     replaceVideoTags,
     replacePageTags,
+    replaceParagraphTags,
+    replaceBreakTags,
     convertMarkdownsToMilestones,
     handleNoCaptionFigures,
     removeMissingFigures,
@@ -357,7 +368,6 @@ export async function convertBooks(
             let bookConverted = false;
             switch (book.type) {
                 case 'story':
-                case 'songs':
                 case 'audio-only':
                 case 'bloom-player':
                 case 'undefined':
@@ -377,6 +387,7 @@ export async function convertBooks(
                     });
                     displayBookId(context.bcId, book.id);
                     break;
+                case 'songs':
                 default:
                     bookConverted = true;
                     if (book.format === 'html') {
